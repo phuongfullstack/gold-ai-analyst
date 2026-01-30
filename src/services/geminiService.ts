@@ -2,7 +2,8 @@ import { GoogleGenAI, Type } from "@google/genai";
 import { MarketData, AnalysisReport } from "../types";
 
 // Initialize Gemini Client
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+const apiKey = process.env.API_KEY || "dummy_key";
+const ai = new GoogleGenAI({ apiKey });
 
 // System instruction for the analyst persona
 const ANALYST_SYSTEM_INSTRUCTION = `
