@@ -37,21 +37,22 @@ const fetchFallbackData = async (): Promise<{ marketData: MarketData; report: An
     const dxyValue = 100 + (Math.random() * 5 - 2.5); // Approximation as DXY API is hard to get free
 
     // Calculate inferred local prices
-    const convertedPrice = (xauPrice * usdVnd * 1.205) / 1000000;
-    const sjcSell = convertedPrice + 2; // Estimated spread
-    const sjcBuy = sjcSell - 2;
-    const ringGoldSell = convertedPrice + 0.5;
-    const ringGoldBuy = ringGoldSell - 1;
+    // UPDATE: We strictly do NOT calculate local prices from world prices as per user requirement.
+    // If real data is unavailable, we return 0.
+    const sjcSell = 0;
+    const sjcBuy = 0;
+    const ringGoldSell = 0;
+    const ringGoldBuy = 0;
 
     const marketData: MarketData = {
       xauPrice,
       dxyValue,
-      sjcBuy: Number(sjcBuy.toFixed(2)),
-      sjcSell: Number(sjcSell.toFixed(2)),
-      ringGoldBuy: Number(ringGoldBuy.toFixed(2)),
-      ringGoldSell: Number(ringGoldSell.toFixed(2)),
+      sjcBuy,
+      sjcSell,
+      ringGoldBuy,
+      ringGoldSell,
       usdVnd,
-      spread: 2,
+      spread: 0,
       lastUpdated: new Date().toLocaleTimeString('vi-VN'),
     };
 
@@ -111,9 +112,10 @@ export const fetchMarketAnalysis = async (): Promise<{ marketData: MarketData; r
       - Tìm kiếm "XAU USD Google Finance" để lấy giá vàng thế giới hiện tại (USD/oz).
       - Tìm kiếm "XAU USD previous day high low close" để lấy dữ liệu OHLC ngày hôm qua (Open, High, Low, Close).
       - Tìm kiếm "Dollar Index DXY Google Finance" để lấy chỉ số DXY hiện tại.
-      - Tìm kiếm "USD VND exchange rate Google Finance" để lấy tỷ giá (ví dụ: 25xxx).
+      - Tìm kiếm "Vietcombank USD exchange rate" hoặc "Tỷ giá Vietcombank hôm nay" để lấy tỷ giá bán ra chính xác nhất từ nguồn uy tín.
       - Tìm kiếm "SJC Gold Price Vietnam" (webgia, pnj, sjc) để lấy giá SJC Mua/Bán mới nhất (đơn vị: triệu đồng/lượng).
       - Tìm kiếm "Gia vang nhan 9999 hom nay" (PNJ, SJC, Bao Tin Minh Chau) để lấy giá Vàng Nhẫn Trơn Mua/Bán mới nhất (đơn vị: triệu đồng/lượng).
+      - LƯU Ý QUAN TRỌNG: Giá Vàng SJC, Vàng Nhẫn và Tỷ giá USD phải lấy từ kết quả tìm kiếm thực tế. TUYỆT ĐỐI KHÔNG được tự tính toán quy đổi từ giá vàng thế giới. Nếu không tìm thấy dữ liệu, hãy để là 0.
 
       BƯỚC 2: LẤY CHỈ SỐ KỸ THUẬT TỪ TRADINGVIEW (CONTEXT)
       - Tìm kiếm "XAUUSD TradingView technical analysis summary indicators" để biết chi tiết:
