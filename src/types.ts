@@ -3,8 +3,6 @@ export interface MarketData {
   dxyValue: number;
   sjcBuy: number;
   sjcSell: number;
-  ringGoldBuy: number;
-  ringGoldSell: number;
   usdVnd: number;
   spread: number;
   lastUpdated: string;
