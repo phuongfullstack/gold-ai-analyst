@@ -31,6 +31,7 @@ export const fetchMarketAnalysis = async (): Promise<{ marketData: MarketData; r
     - Tìm kiếm "Dollar Index DXY Google Finance" để lấy chỉ số DXY hiện tại.
     - Tìm kiếm "USD VND exchange rate Google Finance" để lấy tỷ giá (ví dụ: 25xxx).
     - Tìm kiếm "SJC Gold Price Vietnam" (webgia, pnj, sjc) để lấy giá SJC Mua/Bán mới nhất (đơn vị: triệu đồng/lượng).
+    - Tìm kiếm "Gia vang nhan 9999 hom nay" (PNJ, SJC, Bao Tin Minh Chau) để lấy giá Vàng Nhẫn Trơn Mua/Bán mới nhất (đơn vị: triệu đồng/lượng).
 
     BƯỚC 2: LẤY CHỈ SỐ KỸ THUẬT TỪ TRADINGVIEW (CONTEXT)
     - Tìm kiếm "XAUUSD TradingView technical analysis summary indicators" để biết chi tiết:
@@ -68,11 +69,13 @@ export const fetchMarketAnalysis = async (): Promise<{ marketData: MarketData; r
               dxyValue: { type: Type.NUMBER },
               sjcBuy: { type: Type.NUMBER, description: "Giá mua SJC (Triệu đồng)" },
               sjcSell: { type: Type.NUMBER, description: "Giá bán SJC (Triệu đồng)" },
+              ringGoldBuy: { type: Type.NUMBER, description: "Giá mua Vàng Nhẫn 9999 (Triệu đồng)" },
+              ringGoldSell: { type: Type.NUMBER, description: "Giá bán Vàng Nhẫn 9999 (Triệu đồng)" },
               usdVnd: { type: Type.NUMBER, description: "Tỷ giá USD/VND" },
               spread: { type: Type.NUMBER, description: "Để 0, hệ thống sẽ tự tính" },
               lastUpdated: { type: Type.STRING }
             },
-            required: ["xauPrice", "dxyValue", "sjcBuy", "sjcSell", "usdVnd", "spread", "lastUpdated"]
+            required: ["xauPrice", "dxyValue", "sjcBuy", "sjcSell", "ringGoldBuy", "ringGoldSell", "usdVnd", "spread", "lastUpdated"]
           },
           report: {
             type: Type.OBJECT,
