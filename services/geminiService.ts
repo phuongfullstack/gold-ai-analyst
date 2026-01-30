@@ -2,9 +2,11 @@ import { GoogleGenAI, Type } from "@google/genai";
 import { MarketData, AnalysisReport } from "../types";
 import { calculatePivotPoints, calculateTrendConfidence } from "../utils/algorithms";
 
-// Initialize Gemini Client
-const apiKey = process.env.API_KEY || "TEST_KEY_FOR_VERIFICATION";
-const ai = new GoogleGenAI({ apiKey });
+// Helper to get Gemini Client dynamically
+const getGenAiClient = () => {
+  const apiKey = localStorage.getItem("GEMINI_API_KEY") || process.env.API_KEY || "TEST_KEY_FOR_VERIFICATION";
+  return new GoogleGenAI({ apiKey });
+};
 
 // System instruction for the analyst persona
 const ANALYST_SYSTEM_INSTRUCTION = `
@@ -21,6 +23,7 @@ Nguyên tắc:
 const MODEL_NAME = "gemini-2.0-flash";
 
 export const fetchMarketAnalysis = async (): Promise<{ marketData: MarketData; report: AnalysisReport }> => {
+  const ai = getGenAiClient();
   const now = new Date().toLocaleString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' });
 
   const prompt = `
@@ -174,6 +177,7 @@ export const fetchMarketAnalysis = async (): Promise<{ marketData: MarketData; r
 };
 
 export const chatWithAnalyst = async (history: { role: string; parts: { text: string }[] }[], message: string) => {
+  const ai = getGenAiClient();
   const chat = ai.chats.create({
     model: MODEL_NAME,
     config: {
