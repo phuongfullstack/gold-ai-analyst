@@ -9,6 +9,7 @@ import ChatWidget from './components/ChatWidget';
 import SettingsModal from './components/SettingsModal';
 import { fetchMarketAnalysis } from './services/geminiService';
 import { MarketData, AnalysisReport } from './types';
+import { useToast } from './contexts/ToastContext';
 import html2canvas from 'html2canvas';
 import { jsPDF } from 'jspdf';
 
@@ -16,21 +17,26 @@ const App: React.FC = () => {
   const [marketData, setMarketData] = useState<MarketData | null>(null);
   const [report, setReport] = useState<AnalysisReport | null>(null);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [isPdfGenerating, setIsPdfGenerating] = useState(false);
   const [isPngGenerating, setIsPngGenerating] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const { showToast } = useToast();
 
   const loadData = async () => {
     setLoading(true);
-    setError(null);
     try {
       const data = await fetchMarketAnalysis();
       setMarketData(data.marketData);
       setReport(data.report);
+
+      if (data.report.prediction.includes("Safe Mode")) {
+         showToast("Đang chạy ở chế độ Safe Mode (Không có AI)", "warning");
+      } else {
+         showToast("Dữ liệu thị trường đã được cập nhật", "success");
+      }
     } catch (err) {
       console.error(err);
-      setError("Không thể tải dữ liệu thị trường. Vui lòng kiểm tra API Key.");
+      showToast("Không thể tải dữ liệu thị trường. Vui lòng kiểm tra kết nối.", "error");
     } finally {
       setLoading(false);
     }
@@ -263,13 +269,6 @@ const App: React.FC = () => {
           </div>
         </div>
 
-        {error && (
-          <div className="mb-8 p-5 bg-red-500/10 border-2 border-red-500/30 rounded-2xl text-red-200 flex items-center gap-4 animate-in fade-in slide-in-from-top-4 duration-500">
-            <div className="w-10 h-10 rounded-full bg-red-500/20 flex items-center justify-center text-xl flex-shrink-0">⚠️</div>
-            <div className="font-bold">{error}</div>
-          </div>
-        )}
-
         {/* Top Metrics Row */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6 md:gap-6 mb-10">
           <PriceCard 
@@ -386,7 +385,11 @@ const App: React.FC = () => {
         <ChatWidget />
       </div>
 
-      <SettingsModal isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} />
+      <SettingsModal
+        isOpen={isSettingsOpen}
+        onClose={() => setIsSettingsOpen(false)}
+        onSave={loadData}
+      />
     </div>
   );
 };

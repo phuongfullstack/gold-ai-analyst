@@ -3,9 +3,10 @@ import React, { useState, useEffect } from 'react';
 interface SettingsModalProps {
   isOpen: boolean;
   onClose: () => void;
+  onSave?: () => void;
 }
 
-const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
+const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, onSave }) => {
   const [apiKey, setApiKey] = useState('');
 
   useEffect(() => {
@@ -21,9 +22,8 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
     } else {
       localStorage.removeItem('GEMINI_API_KEY');
     }
+    if (onSave) onSave();
     onClose();
-    // Optional: reload to apply changes if needed, but the service reads on demand now.
-    // window.location.reload();
   };
 
   if (!isOpen) return null;
