@@ -287,23 +287,23 @@ const App: React.FC = () => {
           />
           <PriceCard 
             title="SJC Vietnam" 
-            value={marketData ? `${marketData.sjcSell} tr` : '...'}
-            subValue={`Mua: ${marketData?.sjcBuy || '...'}`}
+            value={marketData && marketData.sjcSell > 0 ? `${marketData.sjcSell} tr` : 'N/A'}
+            subValue={marketData && marketData.sjcBuy > 0 ? `Mua: ${marketData.sjcBuy}` : 'Mua: N/A'}
             color="red"
             icon={<span>🇻🇳</span>}
           />
           <PriceCard
             title="Vàng Nhẫn 9999"
-            value={marketData ? `${marketData.ringGoldSell || '...'} tr` : '...'}
-            subValue={`Mua: ${marketData?.ringGoldBuy || '...'}`}
+            value={marketData && marketData.ringGoldSell > 0 ? `${marketData.ringGoldSell} tr` : 'N/A'}
+            subValue={marketData && marketData.ringGoldBuy > 0 ? `Mua: ${marketData.ringGoldBuy}` : 'Mua: N/A'}
             color="gold"
             icon={<span>💍</span>}
           />
           <PriceCard 
             title="Premium/Spread" 
-            value={marketData ? `+${marketData.spread.toFixed(2)} tr` : '...'}
-            subValue={marketData?.spread && marketData.spread > 5 ? "⚠️ Rủi ro cao" : "✅ Ổn định"}
-            color={marketData?.spread && marketData.spread > 5 ? "red" : "green"}
+            value={marketData && marketData.sjcSell > 0 && marketData.spread !== 0 ? `+${marketData.spread.toFixed(2)} tr` : 'N/A'}
+            subValue={marketData && marketData.sjcSell > 0 ? (marketData.spread > 5 ? "⚠️ Rủi ro cao" : "✅ Ổn định") : "Dữ liệu trống"}
+            color={marketData && marketData.sjcSell > 0 && marketData.spread > 5 ? "red" : "green"}
             icon={<span>📊</span>}
           />
         </div>
