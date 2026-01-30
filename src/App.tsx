@@ -38,7 +38,7 @@ const App: React.FC = () => {
         )}
 
         {/* Top Metrics Row */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8 mb-10">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6 md:gap-6 mb-10">
           <PriceCard
             title="XAU/USD Spot"
             value={marketData ? `$${marketData.xauPrice.toLocaleString()}` : '...'}
@@ -59,6 +59,13 @@ const App: React.FC = () => {
             subValue={`Mua: ${marketData?.sjcBuy || '...'}`}
             color="red"
             icon={<span>🇻🇳</span>}
+          />
+          <PriceCard
+            title="Vàng Nhẫn 9999"
+            value={marketData ? `${marketData.ringGoldSell} tr` : '...'}
+            subValue={`Mua: ${marketData?.ringGoldBuy || '...'}`}
+            color="gold"
+            icon={<span>💍</span>}
           />
           <PriceCard
             title="Premium/Spread"
