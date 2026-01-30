@@ -29,7 +29,7 @@ export const fetchMarketAnalysis = async (): Promise<{ marketData: MarketData; r
     - Tìm kiếm "Dollar Index DXY Google Finance" để lấy chỉ số DXY hiện tại.
     - Tìm kiếm "USD VND exchange rate Google Finance" để lấy tỷ giá.
     - Tìm kiếm "SJC Gold Price Vietnam" (webgia, pnj, sjc) để lấy giá SJC Mua/Bán mới nhất.
-    - Tìm kiếm "Vàng nhẫn 9999 giá Vietnam" để lấy giá vàng nhẫn Mua/Bán mới nhất.
+    - Tìm kiếm "Vàng nhẫn 9999 giá Việt Nam" để lấy giá vàng nhẫn Mua/Bán mới nhất.
 
     BƯỚC 2: LẤY CHỈ SỐ KỸ THUẬT TỪ TRADINGVIEW (CONTEXT)
     - Tìm kiếm "XAUUSD TradingView technical analysis summary indicators" để biết chi tiết:

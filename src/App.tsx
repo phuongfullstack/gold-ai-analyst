@@ -62,7 +62,7 @@ const App: React.FC = () => {
           />
           <PriceCard
             title="Vàng Nhẫn 9999"
-            value={marketData ? `${marketData.ringGoldSell || '...'} tr` : '...'}
+            value={marketData ? `${marketData.ringGoldSell} tr` : '...'}
             subValue={`Mua: ${marketData?.ringGoldBuy || '...'}`}
             color="gold"
             icon={<span>💍</span>}
