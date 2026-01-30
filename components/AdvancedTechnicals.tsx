@@ -28,10 +28,25 @@ const AdvancedTechnicals: React.FC<AdvancedTechnicalsProps> = ({ signals }) => {
 
   return (
     <div className="bg-slate-800/40 p-5 md:p-6 rounded-2xl border border-slate-700/50 backdrop-blur-md shadow-2xl">
-      <h3 className="text-white font-bold mb-6 text-sm md:text-base uppercase tracking-widest flex items-center gap-3">
-        <div className="w-1.5 h-6 bg-blue-500 rounded-full"></div>
-        Chỉ số Kỹ thuật Nâng cao (TradingView)
-      </h3>
+      <div className="flex justify-between items-center mb-6">
+        <h3 className="text-white font-bold text-sm md:text-base uppercase tracking-widest flex items-center gap-3">
+          <div className="w-1.5 h-6 bg-blue-500 rounded-full"></div>
+          Chỉ số Kỹ thuật Nâng cao
+        </h3>
+        {signals.confidenceScore && (
+          <div className="flex items-center gap-3 bg-slate-900/50 px-4 py-2 rounded-xl border border-slate-700">
+             <div className="text-right">
+                <div className="text-[9px] text-slate-500 font-bold uppercase tracking-widest">Độ tin cậy</div>
+                <div className={`text-xs font-black ${signals.confidenceScore.score >= 70 ? 'text-emerald-400' : 'text-yellow-400'}`}>
+                   {signals.confidenceScore.label}
+                </div>
+             </div>
+             <div className={`text-xl font-black ${signals.confidenceScore.score >= 70 ? 'text-emerald-500' : 'text-yellow-500'}`}>
+                {signals.confidenceScore.score}%
+             </div>
+          </div>
+        )}
+      </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {/* RSI & Stoch Column */}
@@ -102,19 +117,39 @@ const AdvancedTechnicals: React.FC<AdvancedTechnicalsProps> = ({ signals }) => {
         {/* Support/Resist Column */}
         <div className="grid grid-cols-2 gap-3">
           <div className="p-3 bg-slate-900/40 rounded-xl border border-slate-700/30">
-            <div className="text-emerald-500 text-[9px] font-black uppercase mb-1">Support 1</div>
+            <div className="text-emerald-500 text-[9px] font-black uppercase mb-1">AI Support</div>
             <div className="text-lg font-black text-emerald-400 font-mono">${signals.support}</div>
           </div>
           <div className="p-3 bg-slate-900/40 rounded-xl border border-slate-700/30">
-            <div className="text-rose-500 text-[9px] font-black uppercase mb-1">Resist 1</div>
+            <div className="text-rose-500 text-[9px] font-black uppercase mb-1">AI Resist</div>
             <div className="text-lg font-black text-rose-400 font-mono">${signals.resistance}</div>
           </div>
-          <div className="col-span-2 p-3 bg-slate-900/40 rounded-xl border border-slate-700/30">
-             <div className="flex justify-between items-center">
-                <span className="text-slate-500 text-[9px] font-black uppercase">MACD</span>
-                <span className="text-xs font-bold text-slate-200 truncate ml-2">{signals.macd}</span>
-             </div>
-          </div>
+
+          {signals.pivotPoints ? (
+             <>
+                <div className="p-3 bg-slate-900/40 rounded-xl border border-emerald-500/20 relative overflow-hidden">
+                   <div className="absolute top-0 right-0 p-1 bg-emerald-500/20 rounded-bl-lg">
+                      <span className="text-[8px] text-emerald-400 font-bold px-1">MATH</span>
+                   </div>
+                   <div className="text-slate-400 text-[9px] font-black uppercase mb-1">Pivot S1</div>
+                   <div className="text-lg font-black text-emerald-200 font-mono">${signals.pivotPoints.s1}</div>
+                </div>
+                <div className="p-3 bg-slate-900/40 rounded-xl border border-rose-500/20 relative overflow-hidden">
+                   <div className="absolute top-0 right-0 p-1 bg-rose-500/20 rounded-bl-lg">
+                      <span className="text-[8px] text-rose-400 font-bold px-1">MATH</span>
+                   </div>
+                   <div className="text-slate-400 text-[9px] font-black uppercase mb-1">Pivot R1</div>
+                   <div className="text-lg font-black text-rose-200 font-mono">${signals.pivotPoints.r1}</div>
+                </div>
+             </>
+          ) : (
+            <div className="col-span-2 p-3 bg-slate-900/40 rounded-xl border border-slate-700/30">
+               <div className="flex justify-between items-center">
+                  <span className="text-slate-500 text-[9px] font-black uppercase">MACD</span>
+                  <span className="text-xs font-bold text-slate-200 truncate ml-2">{signals.macd}</span>
+               </div>
+            </div>
+          )}
         </div>
       </div>
     </div>

@@ -1,3 +1,18 @@
+export interface OHLC {
+  open: number;
+  high: number;
+  low: number;
+  close: number;
+}
+
+export interface PivotPoints {
+  pivot: number;
+  r1: number;
+  r2: number;
+  s1: number;
+  s2: number;
+}
+
 export interface MarketData {
   xauPrice: number;
   dxyValue: number;
@@ -8,6 +23,7 @@ export interface MarketData {
   usdVnd: number;
   spread: number;
   lastUpdated: string;
+  ohlc?: OHLC; // Optional as it might fail to fetch
 }
 
 export interface TechnicalSignals {
@@ -22,6 +38,11 @@ export interface TechnicalSignals {
   bollinger: string;
   ma50: 'ABOVE' | 'BELOW';  // New: Price vs SMA50
   ma200: 'ABOVE' | 'BELOW'; // New: Price vs SMA200
+  pivotPoints?: PivotPoints; // Calculated Algorithmic Support
+  confidenceScore?: {
+    score: number;
+    label: string;
+  };
 }
 
 export interface AnalysisReport {

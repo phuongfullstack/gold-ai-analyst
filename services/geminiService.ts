@@ -1,8 +1,10 @@
 import { GoogleGenAI, Type } from "@google/genai";
 import { MarketData, AnalysisReport } from "../types";
+import { calculatePivotPoints, calculateTrendConfidence } from "../utils/algorithms";
 
 // Initialize Gemini Client
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+const apiKey = process.env.API_KEY || "TEST_KEY_FOR_VERIFICATION";
+const ai = new GoogleGenAI({ apiKey });
 
 // System instruction for the analyst persona
 const ANALYST_SYSTEM_INSTRUCTION = `
@@ -28,6 +30,7 @@ export const fetchMarketAnalysis = async (): Promise<{ marketData: MarketData; r
 
     BƯỚC 1: LẤY DỮ LIỆU TÀI CHÍNH TỪ GOOGLE FINANCE
     - Tìm kiếm "XAU USD Google Finance" để lấy giá vàng thế giới hiện tại (USD/oz).
+    - Tìm kiếm "XAU USD previous day high low close" để lấy dữ liệu OHLC ngày hôm qua (Open, High, Low, Close).
     - Tìm kiếm "Dollar Index DXY Google Finance" để lấy chỉ số DXY hiện tại.
     - Tìm kiếm "USD VND exchange rate Google Finance" để lấy tỷ giá (ví dụ: 25xxx).
     - Tìm kiếm "SJC Gold Price Vietnam" (webgia, pnj, sjc) để lấy giá SJC Mua/Bán mới nhất (đơn vị: triệu đồng/lượng).
@@ -73,7 +76,17 @@ export const fetchMarketAnalysis = async (): Promise<{ marketData: MarketData; r
               ringGoldSell: { type: Type.NUMBER, description: "Giá bán Vàng Nhẫn 9999 (Triệu đồng)" },
               usdVnd: { type: Type.NUMBER, description: "Tỷ giá USD/VND" },
               spread: { type: Type.NUMBER, description: "Để 0, hệ thống sẽ tự tính" },
-              lastUpdated: { type: Type.STRING }
+              lastUpdated: { type: Type.STRING },
+              ohlc: {
+                type: Type.OBJECT,
+                properties: {
+                  open: { type: Type.NUMBER },
+                  high: { type: Type.NUMBER },
+                  low: { type: Type.NUMBER },
+                  close: { type: Type.NUMBER }
+                },
+                description: "Previous day OHLC data for XAU/USD"
+              }
             },
             required: ["xauPrice", "dxyValue", "sjcBuy", "sjcSell", "ringGoldBuy", "ringGoldSell", "usdVnd", "spread", "lastUpdated"]
           },
@@ -143,6 +156,19 @@ export const fetchMarketAnalysis = async (): Promise<{ marketData: MarketData; r
     // Fallback if data is missing, though we should probably warn
     console.warn("Missing data for spread calculation", { xau, usdVnd, sjcSell });
   }
+
+  // --- ALGORITHMIC VERIFICATION ---
+  // 1. Calculate Pivot Points if OHLC is available
+  if (result.marketData.ohlc && result.marketData.ohlc.high && result.marketData.ohlc.low && result.marketData.ohlc.close) {
+      const { high, low, close } = result.marketData.ohlc;
+      const pivots = calculatePivotPoints(high, low, close);
+      // Inject into technical signals
+      result.report.technicalSignals.pivotPoints = pivots;
+  }
+
+  // 2. Calculate Trend Confidence Score
+  const confidence = calculateTrendConfidence(result.report.technicalSignals);
+  result.report.technicalSignals.confidenceScore = confidence;
 
   return result;
 };
