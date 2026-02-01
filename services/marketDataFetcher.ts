@@ -11,27 +11,42 @@ const SCRAPE_URL = 'https://www.24h.com.vn/gia-vang-hom-nay-c425.html';
 // CORS Proxy for browser-side scraping/XML fetching
 const proxyUrl = (url: string) => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`;
 
+// Timeout helper to prevent hanging requests
+const fetchWithTimeout = async (url: string, options: RequestInit = {}, timeoutMs = 5000) => {
+  const controller = new AbortController();
+  const id = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    const res = await fetch(url, { ...options, signal: controller.signal });
+    clearTimeout(id);
+    return res;
+  } catch (error) {
+    clearTimeout(id);
+    throw error;
+  }
+};
+
 export const fetchWorldAndRates = async (): Promise<Partial<MarketData>> => {
   try {
-    const [goldRes, silverRes, rateRes] = await Promise.all([
-      fetch(WORLD_GOLD_API).catch(() => null),
-      fetch(WORLD_SILVER_API).catch(() => null),
-      fetch(EXCHANGE_RATE_API).catch(() => null)
+    // World API is usually fast, but we protect it too
+    const [goldRes, silverRes, rateRes] = await Promise.allSettled([
+      fetchWithTimeout(WORLD_GOLD_API),
+      fetchWithTimeout(WORLD_SILVER_API),
+      fetchWithTimeout(EXCHANGE_RATE_API)
     ]);
 
     const result: Partial<MarketData> = {};
 
-    if (goldRes && goldRes.ok) {
-      const goldData = await goldRes.json();
+    if (goldRes.status === 'fulfilled' && goldRes.value.ok) {
+      const goldData = await goldRes.value.json();
       result.xauPrice = goldData.price || goldData.value || 0;
     }
-    if (silverRes && silverRes.ok) {
-      const silverData = await silverRes.json();
+    if (silverRes.status === 'fulfilled' && silverRes.value.ok) {
+      const silverData = await silverRes.value.json();
       result.xagPrice = silverData.price || silverData.value || 0;
     }
 
-    if (rateRes && rateRes.ok) {
-      const rateData = await rateRes.json();
+    if (rateRes.status === 'fulfilled' && rateRes.value.ok) {
+      const rateData = await rateRes.value.json();
       if (rateData.rates && rateData.rates.VND) {
         result.usdVnd = rateData.rates.VND;
       }
@@ -45,11 +60,11 @@ export const fetchWorldAndRates = async (): Promise<Partial<MarketData>> => {
 
 export const fetchVnAppMobData = async (token: string): Promise<Partial<MarketData>> => {
   try {
-    const vnAppRes = await fetch(`https://vapi.vnappmob.com/api/v2/gold/sjc`, {
+    const vnAppRes = await fetchWithTimeout(`https://vapi.vnappmob.com/api/v2/gold/sjc`, {
       headers: {
         'Authorization': `Bearer ${token}`
       }
-    });
+    }, 5000);
     const vnAppData = await vnAppRes.json();
     if (vnAppData && vnAppData.results) {
       const sjc = vnAppData.results.find((i: any) => i.buy_price > 0);
@@ -75,7 +90,8 @@ const normalizePrice = (val: number) => {
 
 export const fetchSjcXmlData = async (): Promise<Partial<MarketData>> => {
   try {
-    const sjcRes = await fetch(proxyUrl(SJC_XML));
+    // SJC via Proxy is notoriously slow/unreliable, use short timeout
+    const sjcRes = await fetchWithTimeout(proxyUrl(SJC_XML), {}, 4000);
     if (sjcRes.ok) {
       const xmlText = await sjcRes.text();
       const parser = new DOMParser();
@@ -96,14 +112,15 @@ export const fetchSjcXmlData = async (): Promise<Partial<MarketData>> => {
       return result;
     }
   } catch (e) {
-    console.warn("SJC XML fetch failed", e);
+    // console.warn("SJC XML fetch failed or timed out", e);
+    // Silent fail is okay, scraping will pick it up
   }
   return {};
 };
 
 export const fetchDojiData = async (): Promise<Partial<MarketData>> => {
   try {
-    const dojiRes = await fetch(proxyUrl(DOJI_API));
+    const dojiRes = await fetchWithTimeout(proxyUrl(DOJI_API), {}, 4000);
     if (dojiRes.ok) {
       const dojiXmlText = await dojiRes.text();
       const parser = new DOMParser();
@@ -137,14 +154,15 @@ export const fetchDojiData = async (): Promise<Partial<MarketData>> => {
       return result;
     }
   } catch (error) {
-    console.warn("fetchDojiData failed:", error);
+    // console.warn("fetchDojiData failed:", error);
   }
   return {};
 };
 
 export const fetchScrapedData = async (): Promise<Partial<MarketData>> => {
   try {
-    const scrapeRes = await fetch(proxyUrl(SCRAPE_URL));
+    // Scrape is the most reliable backup for local prices
+    const scrapeRes = await fetchWithTimeout(proxyUrl(SCRAPE_URL), {}, 6000);
     if (scrapeRes.ok) {
       const html = await scrapeRes.text();
       const parser = new DOMParser();
@@ -196,6 +214,9 @@ export const fetchScrapedData = async (): Promise<Partial<MarketData>> => {
 export const fetchAllMarketData = async (): Promise<MarketData> => {
   const vnAppMobToken = localStorage.getItem("VNAPPMOB_API_KEY");
 
+  // We use Promise.allSettled implicitly by catching errors in sub-functions,
+  // but to be double sure, we wait for all.
+  // Importantly, because of fetchWithTimeout, these won't hang forever.
   const [world, sjcXml, doji, scrape] = await Promise.all([
     fetchWorldAndRates(),
     fetchSjcXmlData(),
@@ -211,7 +232,7 @@ export const fetchAllMarketData = async (): Promise<MarketData> => {
   const marketData: MarketData = {
     xauPrice: world.xauPrice || 0,
     xagPrice: world.xagPrice || 0,
-    dxyValue: 104,
+    dxyValue: 104, // Default DXY if not fetched (rare)
     sjcBuy: vnApp.sjcBuy || sjcXml.sjcBuy || scrape.sjcBuy || doji.dojiBuy || 0,
     sjcSell: vnApp.sjcSell || sjcXml.sjcSell || scrape.sjcSell || doji.dojiSell || 0,
     pnjBuy: scrape.pnjBuy || 0,

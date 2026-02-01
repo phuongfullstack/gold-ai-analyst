@@ -48,10 +48,11 @@ const fetchFallbackData = async (): Promise<{ marketData: MarketData; report: An
   try {
     let marketData: MarketData;
     try {
-       // Try to fetch real data with a 5s timeout to prevent hanging
+       // Try to fetch real data with a 15s timeout
+       // Now using Promise.race with a longer timeout because fetchAllMarketData handles its own sub-timeouts
        marketData = await Promise.race([
           fetchAllMarketData(),
-          new Promise<MarketData>((_, reject) => setTimeout(() => reject(new Error("Timeout")), 5000))
+          new Promise<MarketData>((_, reject) => setTimeout(() => reject(new Error("Global Timeout")), 15000))
        ]);
     } catch (e) {
        console.warn("Real data fetch failed/timed out in fallback, using mock", e);
@@ -67,7 +68,7 @@ const fetchFallbackData = async (): Promise<{ marketData: MarketData; report: An
           silverBuy: 2.5, silverSell: 2.8,
           usdVnd: 25450,
           spread: 0,
-          lastUpdated: "Fallback Mode (Mock)"
+          lastUpdated: "Fallback Mode (Offline/Error)"
        };
     }
 
@@ -174,7 +175,11 @@ export const fetchMarketAnalysis = async (): Promise<{ marketData: MarketData; r
     const now = new Date().toLocaleString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' });
 
     // FETCH REAL-TIME DATA FIRST AS GROUND TRUTH
-    const realData = await fetchAllMarketData();
+    // Using a race with 15s timeout
+    const realData = await Promise.race([
+        fetchAllMarketData(),
+        new Promise<MarketData>((_, reject) => setTimeout(() => reject(new Error("Global Data Timeout")), 15000))
+    ]);
 
     const prompt = `
       Thời gian phân tích: ${now}.
