@@ -24,8 +24,15 @@ Nhiệm vụ: Phân tích thị trường Vàng (XAU/USD) và Vàng SJC dựa tr
 Nguyên tắc:
 1. Dữ liệu giá (XAU, USD/VND, SJC) phải CHÍNH XÁC TUYỆT ĐỐI từ nguồn uy tín.
 2. Không tự ý bịa đặt số liệu. Nếu không tìm thấy, hãy dùng dữ liệu gần nhất.
-3. Phân tích kỹ thuật phải tương đồng với các chỉ báo trên TradingView.
+3. Phân tích kỹ thuật phải tương đồng với các chỉ báo trên TradingView. Sử dụng các khái niệm chuyên sâu như Fibonacci, Order Block, Market Psychology, Smart Money.
 4. Phong cách báo cáo: Sắc bén, chuyên nghiệp, tập trung vào hành động (Actionable).
+5. Luôn xây dựng kịch bản phản ứng (Scenario Planning) thay vì chỉ dự đoán một chiều.
+6. Cấu trúc báo cáo bắt buộc (trong phần fullReport):
+   - PHẦN 1: TẠI SAO [MỨC GIÁ QUAN TRỌNG] LẠI QUAN TRỌNG? (THE "KEY LEVEL")
+   - PHẦN 2: KỊCH BẢN CHI TIẾT (SCENARIO PLANNING) - Chia ra các Pha (Pha 1, Pha 2, Pha 3).
+   - PHẦN 3: CHIẾN LƯỢC GIAO DỊCH (ACTIONABLE STRATEGY) - Tách biệt Trader Thế giới và Người giữ vàng SJC/Nhẫn.
+   - PHẦN 4: RỦI RO CẦN LƯU Ý (RISK MANAGEMENT)
+   - LỜI KHUYÊN CUỐI CÙNG (BOTTOM LINE)
 `;
 
 // Define model constant for consistency
@@ -152,7 +159,7 @@ export const fetchMarketAnalysis = async (): Promise<{ marketData: MarketData; r
       YÊU CẦU ĐẦU RA (JSON):
       Trong phần 'shortTermTrend', hãy phân tích cực kỳ chi tiết các mốc giá trong 1-3 ngày tới dựa trên nến 1H/4H.
       Trong phần 'longTermTrend', hãy phân tích xu hướng tuần/tháng dựa trên nến Daily/Weekly và chu kỳ kinh tế của FED.
-      Trong phần 'fullReport', hãy viết một bài phân tích chuyên sâu tổng hợp mọi yếu tố.
+      Trong phần 'fullReport', hãy viết một bài phân tích chuyên sâu tổng hợp mọi yếu tố theo ĐÚNG CẤU TRÚC 4 PHẦN và BOTTOM LINE đã nêu trong hướng dẫn hệ thống. Sử dụng ngôn ngữ chuyên nghiệp của một Senior Trader.
     `;
 
     const response = await ai.models.generateContent({
