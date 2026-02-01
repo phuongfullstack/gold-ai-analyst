@@ -1,84 +1,6 @@
 import { TechnicalSignals } from '../types';
 import { ANALYSIS_CONSTANTS, UI_LABELS } from './constants';
 
-export interface PivotPoints {
-    pivot: number;
-    r1: number;
-    r2: number;
-    s1: number;
-    s2: number;
-}
-
-/**
- * Calculates Standard Pivot Points.
- * @param high Previous High
- * @param low Previous Low
- * @param close Previous Close
- */
-export const calculatePivotPoints = (high: number, low: number, close: number): PivotPoints => {
-    const pivot = (high + low + close) / 3;
-    const r1 = (2 * pivot) - low;
-    const s1 = (2 * pivot) - high;
-    const r2 = pivot + (high - low);
-    const s2 = pivot - (high - low);
-
-    return {
-        pivot: Number(pivot.toFixed(2)),
-        r1: Number(r1.toFixed(2)),
-        r2: Number(r2.toFixed(2)),
-        s1: Number(s1.toFixed(2)),
-        s2: Number(s2.toFixed(2))
-    };
-};
-
-/**
- * Calculates Fibonacci Retracement Levels for a generic trend.
- * Used to identify potential support (if uptrend) or resistance (if downtrend).
- */
-export const calculateFibonacciRetracement = (high: number, low: number, trend: 'UP' | 'DOWN') => {
-    const diff = high - low;
-    const FIB_LEVELS = {
-        L236: 0.236,
-        L382: 0.382,
-        L500: 0.5,
-        L618: 0.618
-    };
-
-    if (trend === 'UP') {
-        // Trend is UP, we measure Pullbacks. High is peak, Low is trough.
-        // Support levels are below the High.
-        return {
-            level236: high - (diff * FIB_LEVELS.L236),
-            level382: high - (diff * FIB_LEVELS.L382),
-            level500: high - (diff * FIB_LEVELS.L500),
-            level618: high - (diff * FIB_LEVELS.L618)
-        };
-    } else {
-        // Trend is DOWN. We measure bounces. Low is bottom, High is start.
-        // Resistance levels are above the Low.
-        return {
-            level236: low + (diff * FIB_LEVELS.L236),
-            level382: low + (diff * FIB_LEVELS.L382),
-            level500: low + (diff * FIB_LEVELS.L500),
-            level618: low + (diff * FIB_LEVELS.L618)
-        };
-    }
-};
-
-/**
- * Wrapper for Fibonacci levels calculation from OHLC.
- */
-export const calculateFibonacciLevels = (high: number, low: number, open: number, close: number) => {
-    const trend = close >= open ? 'UP' : 'DOWN';
-    const levels = calculateFibonacciRetracement(high, low, trend);
-    return {
-        ...Object.fromEntries(
-            Object.entries(levels).map(([k, v]) => [k, Number(v.toFixed(2))])
-        ),
-        trend
-    };
-};
-
 /**
  * Calculates a "Confidence Score" (0-100) for the current trend.
  * High score means indicators align.
@@ -107,6 +29,18 @@ export const calculateTrendConfidence = (signals: TechnicalSignals): { score: nu
 
     if (signals.ma200 === 'ABOVE') score += WEIGHTS.MA200;
     else score -= WEIGHTS.MA200;
+
+    // Ichimoku Cloud (New)
+    if (signals.ichimoku) {
+        if (signals.ichimoku.signal === 'BULLISH') score += WEIGHTS.ICHIMOKU;
+        else if (signals.ichimoku.signal === 'BEARISH') score -= WEIGHTS.ICHIMOKU;
+    }
+
+    // Parabolic SAR (New)
+    if (signals.sar) {
+        if (signals.sar.trend === 'UP') score += WEIGHTS.SAR;
+        else score -= WEIGHTS.SAR;
+    }
 
     // ADX (Trend Strength)
     if (signals.adx > ANALYSIS_CONSTANTS.ADX.STRONG_TREND) {
@@ -172,6 +106,19 @@ export const generateMarketInsight = (signals: TechnicalSignals): string => {
         insight += "Áp lực bán duy trì mạnh trên các khung thời gian lớn. ";
     }
 
+    if (signals.ichimoku) {
+        if (signals.ichimoku.signal === 'BULLISH') insight += "Ichimoku Cloud xác nhận xu hướng tăng. ";
+        else if (signals.ichimoku.signal === 'BEARISH') insight += "Giá nằm dưới Ichimoku Cloud, xu hướng giảm chiếm ưu thế. ";
+
+        if (signals.ichimoku.tenkan > signals.ichimoku.kijun) insight += "Đường Tenkan cắt lên Kijun (Tín hiệu mua). ";
+        else if (signals.ichimoku.tenkan < signals.ichimoku.kijun) insight += "Đường Tenkan cắt xuống Kijun (Tín hiệu bán). ";
+    }
+
+    if (signals.sar) {
+        if (signals.sar.trend === 'UP') insight += "Parabolic SAR đang ở dưới giá (Hỗ trợ tăng). ";
+        else insight += "Parabolic SAR đang ở trên giá (Kháng cự giảm). ";
+    }
+
     if (signals.rsi > 70) insight += "Chỉ số RSI cho thấy trạng thái quá mua, tiềm ẩn rủi ro điều chỉnh. ";
     else if (signals.rsi < 30) insight += "RSI đi vào vùng quá bán, có khả năng xuất hiện nhịp hồi kỹ thuật. ";
 
@@ -193,6 +140,13 @@ export const analyzeTrendStrength = (signals: TechnicalSignals) => {
         { name: 'MA200', status: signals.ma200 === 'ABOVE' ? 'Bullish' : 'Bearish' },
         { name: 'ADX', value: signals.adx, status: signals.adx > 25 ? 'Strong Trend' : 'Weak Trend' }
     ];
+
+    if (signals.ichimoku) {
+        indicators.push({ name: 'Ichimoku', status: signals.ichimoku.signal });
+    }
+    if (signals.sar) {
+        indicators.push({ name: 'SAR', status: signals.sar.trend });
+    }
 
     return {
         score,

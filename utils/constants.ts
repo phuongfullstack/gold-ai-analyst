@@ -57,7 +57,9 @@ export const ANALYSIS_CONSTANTS = {
     MA200: 10,
     ADX: 10,
     MACD: 10,
-    BB: 5
+    BB: 5,
+    ICHIMOKU: 10, // New
+    SAR: 10       // New
   },
 
   // Local Gold SJC Spread thresholds (Million VND)
@@ -69,7 +71,7 @@ export const ANALYSIS_CONSTANTS = {
   // UI/App specific constants
   REFRESH_INTERVAL_MS: 30 * 60 * 1000, // 30 minutes
   EXPORT_WINDOW_WIDTH: 1600,
-  APP_VERSION: 'v1.5.0',
+  APP_VERSION: 'v1.6.0',
 };
 
 export const UI_LABELS = {
