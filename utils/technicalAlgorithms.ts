@@ -114,9 +114,11 @@ export const calculateIchimoku = (highs: number[], lows: number[], closes: numbe
   if (currentClose > spanA && currentClose > spanB) signal = 'BULLISH';
   else if (currentClose < spanA && currentClose < spanB) signal = 'BEARISH';
 
-  // Crossover check
-  if (tenkan > kijun && currentClose > spanB) signal = 'BULLISH';
-  if (tenkan < kijun && currentClose < spanB) signal = 'BEARISH';
+  // Crossover check (only if no clear cloud signal yet)
+  if (signal === 'NEUTRAL') {
+    if (tenkan > kijun && currentClose > spanB) signal = 'BULLISH';
+    else if (tenkan < kijun && currentClose < spanB) signal = 'BEARISH';
+  }
 
   return {
     tenkan: Number(tenkan.toFixed(2)),
