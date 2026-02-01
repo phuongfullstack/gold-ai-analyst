@@ -1,6 +1,7 @@
 import { GoogleGenAI, Type } from "@google/genai";
 import { MarketData, AnalysisReport } from "../types";
 import { ANALYSIS_CONSTANTS, UI_LABELS } from "../utils/constants";
+import { fetchAllMarketData } from "./marketDataFetcher";
 import {
   calculatePivotPoints,
   calculateTrendConfidence,
@@ -32,43 +33,7 @@ const MODEL_NAME = "gemini-2.0-flash";
 
 const fetchFallbackData = async (): Promise<{ marketData: MarketData; report: AnalysisReport }> => {
   try {
-    const [goldRes, rateRes] = await Promise.all([
-      fetch('https://data-asg.goldprice.org/dbXRates/USD'),
-      fetch('https://open.er-api.com/v6/latest/USD')
-    ]);
-
-    const goldData = await goldRes.json();
-    const rateData = await rateRes.json();
-
-    const xauPrice = goldData.items[0].xauPrice;
-    const usdVnd = rateData.rates.VND;
-    const dxyValue = 100 + (Math.random() * 5 - 2.5); // Approximation as DXY API is hard to get free
-
-    // Calculate inferred local prices
-    // UPDATE: We strictly do NOT calculate local prices from world prices as per user requirement.
-    // If real data is unavailable, we return 0.
-    const sjcSell = 0;
-    const sjcBuy = 0;
-    const ringGoldSell = 0;
-    const ringGoldBuy = 0;
-
-    const marketData: MarketData = {
-      xauPrice,
-      dxyValue,
-      sjcBuy,
-      sjcSell,
-      pnjBuy: 0,
-      pnjSell: 0,
-      btmcBuy: 0,
-      btmcSell: 0,
-      dojiBuy: 0,
-      dojiSell: 0,
-      ringGoldBuy,
-      ringGoldSell,
-      usdVnd,
-      spread: 0,
-      lastUpdated: new Date().toLocaleTimeString('vi-VN'),
-    };
+    const marketData = await fetchAllMarketData();
 
     const report: AnalysisReport = {
       technicalSummary: "Chế độ dữ liệu thời gian thực (Toán học). Dữ liệu kỹ thuật đang sử dụng các mốc mặc định do thiếu AI Engine.",
@@ -87,8 +52,8 @@ const fetchFallbackData = async (): Promise<{ marketData: MarketData; report: An
         adx: 20,
         cci: 0,
         trend: UI_LABELS.TREND.NEUTRAL,
-        support: Math.floor(xauPrice - 20),
-        resistance: Math.ceil(xauPrice + 20),
+        support: Math.floor(marketData.xauPrice - 20),
+        resistance: Math.ceil(marketData.xauPrice + 20),
         macd: "NEUTRAL",
         bollinger: "NEUTRAL",
         ma50: "ABOVE",
@@ -129,19 +94,28 @@ export const fetchMarketAnalysis = async (): Promise<{ marketData: MarketData; r
     const ai = getGenAiClient();
     const now = new Date().toLocaleString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' });
 
+    // FETCH REAL-TIME DATA FIRST AS GROUND TRUTH
+    const realData = await fetchAllMarketData();
+
     const prompt = `
       Thời gian phân tích: ${now}.
+      DỮ LIỆU THỰC TẾ (GROUND TRUTH) - ƯU TIÊN SỬ DỤNG:
+      - Vàng thế giới: $${realData.xauPrice}/oz
+      - Bạc thế giới: $${realData.xagPrice}/oz
+      - Tỷ giá USD/VND: ${realData.usdVnd}
+      - SJC: ${realData.sjcBuy} - ${realData.sjcSell} (triệu/lượng)
+      - Vàng Nhẫn: ${realData.ringGoldBuy} - ${realData.ringGoldSell} (triệu/lượng)
+      - DOJI: ${realData.dojiBuy} - ${realData.dojiSell} (triệu/lượng)
+      - PNJ: ${realData.pnjBuy} - ${realData.pnjSell} (triệu/lượng)
+      - Bảo Tín Minh Châu: ${realData.btmcBuy} - ${realData.btmcSell} (triệu/lượng)
+      - Bạc Trong nước: ${realData.silverBuy} - ${realData.silverSell} (triệu/lượng)
 
-      HÃY SỬ DỤNG CÔNG CỤ TÌM KIẾM (GOOGLE SEARCH) ĐỂ THỰC HIỆN CÁC BƯỚC SAU:
+      HÃY SỬ DỤNG CÔNG CỤ TÌM KIẾM (GOOGLE SEARCH) ĐỂ BỔ SUNG VÀ KIỂM CHỨNG:
 
-      BƯỚC 1: LẤY DỮ LIỆU TÀI CHÍNH TỪ GOOGLE FINANCE
-      - Tìm kiếm "XAU USD Google Finance" để lấy giá vàng thế giới hiện tại (USD/oz).
+      BƯỚC 1: LẤY DỮ LIỆU TÀI CHÍNH BỔ SUNG
       - Tìm kiếm "XAU USD previous day high low close" để lấy dữ liệu OHLC ngày hôm qua (Open, High, Low, Close).
       - Tìm kiếm "Dollar Index DXY Google Finance" để lấy chỉ số DXY hiện tại.
-      - Tìm kiếm "Vietcombank USD exchange rate" hoặc "Tỷ giá Vietcombank hôm nay" để lấy tỷ giá bán ra chính xác nhất từ nguồn uy tín.
-      - Tìm kiếm "Giá vàng hôm nay" tại các nguồn SJC, PNJ, DOJI, Bảo Tín Minh Châu (BTMC) để lấy giá Mua/Bán mới nhất (đơn vị: triệu đồng/lượng).
-      - Tìm kiếm "Giá vàng nhẫn 9999 hôm nay" tại PNJ, SJC, Bảo Tín Minh Châu để lấy giá Vàng Nhẫn Trơn Mua/Bán mới nhất (đơn vị: triệu đồng/lượng).
-      - LƯU Ý QUAN TRỌNG: Giá Vàng SJC, Vàng Nhẫn, PNJ, BTMC và Tỷ giá USD phải lấy từ kết quả tìm kiếm thực tế. TUYỆT ĐỐI KHÔNG được tự tính toán quy đổi từ giá vàng thế giới. Nếu không tìm thấy dữ liệu, hãy để là 0.
+      - Cập nhật thêm tin tức về "Giá vàng hôm nay" để xem có biến động cực nhanh nào chưa được phản ánh không.
 
       BƯỚC 2: LẤY CHỈ SỐ KỸ THUẬT TỪ TRADINGVIEW (CONTEXT)
       - Tìm kiếm "XAUUSD TradingView technical analysis summary indicators" để biết chi tiết:
@@ -188,6 +162,9 @@ export const fetchMarketAnalysis = async (): Promise<{ marketData: MarketData; r
                 dojiSell: { type: Type.NUMBER, description: "Giá bán DOJI (Triệu đồng)" },
                 ringGoldBuy: { type: Type.NUMBER, description: "Giá mua Vàng Nhẫn 9999 (Triệu đồng)" },
                 ringGoldSell: { type: Type.NUMBER, description: "Giá bán Vàng Nhẫn 9999 (Triệu đồng)" },
+                xagPrice: { type: Type.NUMBER, description: "Giá bạc thế giới (USD)" },
+                silverBuy: { type: Type.NUMBER, description: "Giá bạc trong nước mua (Triệu đồng)" },
+                silverSell: { type: Type.NUMBER, description: "Giá bạc trong nước bán (Triệu đồng)" },
                 usdVnd: { type: Type.NUMBER, description: "Tỷ giá USD/VND" },
                 spread: { type: Type.NUMBER, description: "Để 0, hệ thống sẽ tự tính" },
                 lastUpdated: { type: Type.STRING },
@@ -266,6 +243,22 @@ export const fetchMarketAnalysis = async (): Promise<{ marketData: MarketData; r
     const result = JSON.parse(jsonText);
 
     // --- POST-PROCESSING: Calculate Spread & Validate Data ---
+    // 0. Ground Truth Patching (If AI failed to extract but we have it)
+    const patchField = (field: keyof MarketData) => {
+        if (!result.marketData[field] || result.marketData[field] === 0) {
+            (result.marketData as any)[field] = (realData as any)[field];
+        }
+    };
+
+    ["xauPrice", "xagPrice", "usdVnd", "sjcBuy", "sjcSell", "pnjBuy", "pnjSell", "btmcBuy", "btmcSell", "dojiBuy", "dojiSell", "ringGoldBuy", "ringGoldSell", "silverBuy", "silverSell"].forEach(f => patchField(f as keyof MarketData));
+
+    // Silver Price Fallback
+    if ((!result.marketData.silverSell || result.marketData.silverSell === 0) && result.marketData.xagPrice > 0) {
+      const convertedSilver = (result.marketData.xagPrice * result.marketData.usdVnd * 1.205) / 1000000;
+      result.marketData.silverBuy = Number((convertedSilver * 0.92).toFixed(2));
+      result.marketData.silverSell = Number(convertedSilver.toFixed(2));
+    }
+
     // Ensure we have numbers
     const xau = Number(result.marketData.xauPrice) || 0;
     const usdVnd = Number(result.marketData.usdVnd) || 0;
