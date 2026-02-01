@@ -107,4 +107,8 @@ export interface ChartDataPoint {
   time: string;
   xau: number;
   dxy: number;
+  open?: number;
+  high?: number;
+  low?: number;
+  close?: number;
 }

@@ -67,12 +67,26 @@ const fetchFallbackData = async (): Promise<{ marketData: MarketData; report: An
     // Mock chart data for fallback
     const mockChartData: ChartDataPoint[] = [];
     const baseTime = Math.floor(Date.now() / 1000);
+    let lastPrice = marketData.xauPrice || 2600;
+
     for (let i = 24; i >= 0; i--) {
+      const time = (baseTime - i * 3600).toString();
+      const change = (Math.random() * 10 - 5);
+      const open = lastPrice;
+      const close = lastPrice + change;
+      const high = Math.max(open, close) + Math.random() * 2;
+      const low = Math.min(open, close) - Math.random() * 2;
+
       mockChartData.push({
-        time: (baseTime - i * 3600).toString(),
-        xau: xauPrice - (Math.random() * 10 - 5),
-        dxy: dxyValue - (Math.random() * 0.5 - 0.25)
+        time,
+        xau: close,
+        dxy: marketData.dxyValue - (Math.random() * 0.5 - 0.25),
+        open,
+        high,
+        low,
+        close
       });
+      lastPrice = close;
     }
     report.chartData = mockChartData;
 
@@ -142,8 +156,9 @@ export const fetchMarketAnalysis = async (): Promise<{ marketData: MarketData; r
       - Tìm kiếm "World news geopolitical events today" có ảnh hưởng đến tâm lý nhà đầu tư.
 
       BƯỚC 4: LẤY DỮ LIỆU LỊCH SỬ (CHART)
-      - Tìm kiếm "XAUUSD price history last 24 hours hourly" để lấy chuỗi giá vàng trong 24 giờ qua.
+      - Tìm kiếm "XAUUSD price history last 24 hours hourly OHLC" để lấy chuỗi giá vàng trong 24 giờ qua.
       - Lấy khoảng 12-24 điểm dữ liệu (mỗi 1-2 giờ một điểm).
+      - Mỗi điểm dữ liệu CẦN có: Open, High, Low, Close (OHLC).
 
       BƯỚC 5: TỔNG HỢP BÁO CÁO
       - Tổng hợp các dữ liệu thô tìm được vào JSON.
@@ -262,10 +277,14 @@ export const fetchMarketAnalysis = async (): Promise<{ marketData: MarketData; r
                     type: Type.OBJECT,
                     properties: {
                       time: { type: Type.STRING, description: "Unix timestamp (chuỗi)" },
-                      xau: { type: Type.NUMBER, description: "Giá vàng tại thời điểm đó" },
-                      dxy: { type: Type.NUMBER, description: "Chỉ số DXY tại thời điểm đó" }
+                      xau: { type: Type.NUMBER, description: "Giá vàng tại thời điểm đó (Close)" },
+                      dxy: { type: Type.NUMBER, description: "Chỉ số DXY tại thời điểm đó" },
+                      open: { type: Type.NUMBER },
+                      high: { type: Type.NUMBER },
+                      low: { type: Type.NUMBER },
+                      close: { type: Type.NUMBER }
                     },
-                    required: ["time", "xau", "dxy"]
+                    required: ["time", "xau", "dxy", "open", "high", "low", "close"]
                   }
                 }
               },
