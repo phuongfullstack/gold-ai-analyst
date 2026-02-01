@@ -13,11 +13,33 @@ export interface PivotPoints {
   s2: number;
 }
 
+export interface FibonacciLevels {
+  level236: number;
+  level382: number;
+  level500: number;
+  level618: number;
+  trend: 'UP' | 'DOWN';
+}
+
+export interface MarketNews {
+  title: string;
+  source: string;
+  summary: string;
+  category: 'MARKET' | 'GEOPOLITICAL' | 'MACRO';
+  timestamp: string;
+}
+
 export interface MarketData {
   xauPrice: number;
   dxyValue: number;
   sjcBuy: number;
   sjcSell: number;
+  pnjBuy: number;
+  pnjSell: number;
+  btmcBuy: number;
+  btmcSell: number;
+  dojiBuy: number;
+  dojiSell: number;
   ringGoldBuy: number;
   ringGoldSell: number;
   usdVnd: number;
@@ -39,6 +61,7 @@ export interface TechnicalSignals {
   ma50: 'ABOVE' | 'BELOW';  // New: Price vs SMA50
   ma200: 'ABOVE' | 'BELOW'; // New: Price vs SMA200
   pivotPoints?: PivotPoints; // Calculated Algorithmic Support
+  fibonacciLevels?: FibonacciLevels;
   confidenceScore?: {
     score: number;
     label: string;
@@ -58,6 +81,7 @@ export interface AnalysisReport {
   entryPointSell: number;
   technicalSignals: TechnicalSignals;
   fullReport: string;
+  news: MarketNews[];
 }
 
 export interface ChatMessage {

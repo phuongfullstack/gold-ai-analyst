@@ -71,13 +71,13 @@ const MarketChart: React.FC<MarketChartProps> = ({ supportLevel, resistanceLevel
           <div className="flex gap-4 text-xs font-mono">
              {supportLevel && (
                 <div className="flex items-center gap-2 px-3 py-1 bg-emerald-500/10 border border-emerald-500/30 rounded-lg">
-                  <span className="text-emerald-500 font-bold">AI Support:</span>
+                  <span className="text-emerald-500 font-bold">Hỗ trợ AI:</span>
                   <span className="text-emerald-300">${supportLevel}</span>
                 </div>
              )}
              {resistanceLevel && (
                 <div className="flex items-center gap-2 px-3 py-1 bg-rose-500/10 border border-rose-500/30 rounded-lg">
-                  <span className="text-rose-500 font-bold">AI Resist:</span>
+                  <span className="text-rose-500 font-bold">Kháng cự AI:</span>
                   <span className="text-rose-300">${resistanceLevel}</span>
                 </div>
              )}

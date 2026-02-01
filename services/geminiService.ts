@@ -1,6 +1,14 @@
 import { GoogleGenAI, Type } from "@google/genai";
 import { MarketData, AnalysisReport } from "../types";
-import { calculatePivotPoints, calculateTrendConfidence } from "../utils/algorithms";
+import { ANALYSIS_CONSTANTS, UI_LABELS } from "../utils/constants";
+import {
+  calculatePivotPoints,
+  calculateTrendConfidence,
+  calculateTechnicalAction,
+  generateMarketInsight,
+  calculateFibonacciLevels,
+  analyzeLocalPremium
+} from "../utils/algorithms";
 
 // Helper to get Gemini Client dynamically
 const getGenAiClient = () => {
@@ -49,6 +57,12 @@ const fetchFallbackData = async (): Promise<{ marketData: MarketData; report: An
       dxyValue,
       sjcBuy,
       sjcSell,
+      pnjBuy: 0,
+      pnjSell: 0,
+      btmcBuy: 0,
+      btmcSell: 0,
+      dojiBuy: 0,
+      dojiSell: 0,
       ringGoldBuy,
       ringGoldSell,
       usdVnd,
@@ -57,31 +71,43 @@ const fetchFallbackData = async (): Promise<{ marketData: MarketData; report: An
     };
 
     const report: AnalysisReport = {
-      technicalSummary: "Chế độ dữ liệu thời gian thực (Không có AI Analysis). Giá vàng thế giới đang được cập nhật trực tiếp.",
-      macroSummary: "Dữ liệu Vĩ mô không khả dụng trong chế độ này.",
-      localSpreadAnalysis: "Chênh lệch giá trong nước được tính toán dựa trên tỷ giá thực tế.",
-      tradingAction: 'QUAN SÁT',
-      prediction: "Trung lập (Chế độ Safe Mode)",
-      shortTermTrend: "Không đủ dữ liệu phân tích",
-      longTermTrend: "Không đủ dữ liệu phân tích",
+      technicalSummary: "Chế độ dữ liệu thời gian thực (Toán học). Dữ liệu kỹ thuật đang sử dụng các mốc mặc định do thiếu AI Engine.",
+      macroSummary: "Dữ liệu Vĩ mô không khả dụng trong chế độ toán học thuần túy.",
+      localSpreadAnalysis: "Đang phân tích chênh lệch giá...",
+      tradingAction: UI_LABELS.ACTION.OBSERVE as any,
+      prediction: "Trung lập (Toán học)",
+      shortTermTrend: "Theo dõi các mốc hỗ trợ/kháng cự kỹ thuật.",
+      longTermTrend: "Dữ liệu dài hạn cần thêm thông tin vĩ mô.",
       suggestedBuyZone: "N/A",
       entryPointBuy: 0,
       entryPointSell: 0,
       technicalSignals: {
-        rsi: 50,
+        rsi: ANALYSIS_CONSTANTS.RSI.NEUTRAL,
         stochastic: 50,
         adx: 20,
         cci: 0,
-        trend: "NEUTRAL",
-        support: 0,
-        resistance: 0,
+        trend: UI_LABELS.TREND.NEUTRAL,
+        support: Math.floor(xauPrice - 20),
+        resistance: Math.ceil(xauPrice + 20),
         macd: "NEUTRAL",
         bollinger: "NEUTRAL",
         ma50: "ABOVE",
         ma200: "ABOVE"
       },
-      fullReport: "Hệ thống đang chạy ở chế độ Safe Mode do thiếu API Key hoặc lỗi kết nối đến AI Service. Dữ liệu giá vẫn được cập nhật realtime."
+      fullReport: "Hệ thống đang chạy ở chế độ Phân tích Toán học do thiếu API Key. Các chỉ báo kỹ thuật được đặt ở mức trung tính. Giá vàng và tỷ giá vẫn được cập nhật realtime từ các nguồn public uy tín.",
+      news: []
     };
+
+    // Apply Algorithmic Engine to Fallback Data
+    const confidence = calculateTrendConfidence(report.technicalSignals);
+    report.technicalSignals.confidenceScore = confidence;
+
+    const algoInsight = generateMarketInsight(report.technicalSignals);
+    report.technicalSummary = `${report.technicalSummary}\n\n[Hệ thống]: ${algoInsight}`;
+
+    if (marketData.spread !== undefined) {
+        report.localSpreadAnalysis = analyzeLocalPremium(marketData.spread);
+    }
 
     return { marketData, report };
 
@@ -113,9 +139,9 @@ export const fetchMarketAnalysis = async (): Promise<{ marketData: MarketData; r
       - Tìm kiếm "XAU USD previous day high low close" để lấy dữ liệu OHLC ngày hôm qua (Open, High, Low, Close).
       - Tìm kiếm "Dollar Index DXY Google Finance" để lấy chỉ số DXY hiện tại.
       - Tìm kiếm "Vietcombank USD exchange rate" hoặc "Tỷ giá Vietcombank hôm nay" để lấy tỷ giá bán ra chính xác nhất từ nguồn uy tín.
-      - Tìm kiếm "SJC Gold Price Vietnam" (webgia, pnj, sjc) để lấy giá SJC Mua/Bán mới nhất (đơn vị: triệu đồng/lượng).
-      - Tìm kiếm "Gia vang nhan 9999 hom nay" (PNJ, SJC, Bao Tin Minh Chau) để lấy giá Vàng Nhẫn Trơn Mua/Bán mới nhất (đơn vị: triệu đồng/lượng).
-      - LƯU Ý QUAN TRỌNG: Giá Vàng SJC, Vàng Nhẫn và Tỷ giá USD phải lấy từ kết quả tìm kiếm thực tế. TUYỆT ĐỐI KHÔNG được tự tính toán quy đổi từ giá vàng thế giới. Nếu không tìm thấy dữ liệu, hãy để là 0.
+      - Tìm kiếm "Giá vàng hôm nay" tại các nguồn SJC, PNJ, DOJI, Bảo Tín Minh Châu (BTMC) để lấy giá Mua/Bán mới nhất (đơn vị: triệu đồng/lượng).
+      - Tìm kiếm "Giá vàng nhẫn 9999 hôm nay" tại PNJ, SJC, Bảo Tín Minh Châu để lấy giá Vàng Nhẫn Trơn Mua/Bán mới nhất (đơn vị: triệu đồng/lượng).
+      - LƯU Ý QUAN TRỌNG: Giá Vàng SJC, Vàng Nhẫn, PNJ, BTMC và Tỷ giá USD phải lấy từ kết quả tìm kiếm thực tế. TUYỆT ĐỐI KHÔNG được tự tính toán quy đổi từ giá vàng thế giới. Nếu không tìm thấy dữ liệu, hãy để là 0.
 
       BƯỚC 2: LẤY CHỈ SỐ KỸ THUẬT TỪ TRADINGVIEW (CONTEXT)
       - Tìm kiếm "XAUUSD TradingView technical analysis summary indicators" để biết chi tiết:
@@ -123,9 +149,10 @@ export const fetchMarketAnalysis = async (): Promise<{ marketData: MarketData; r
         + Giá so với MA50 và MA200.
         + Bollinger Bands, MACD Level & Signal.
 
-      BƯỚC 3: LẤY TIN TỨC KINH TẾ XÃ HỘI (MACRO)
-      - Tìm kiếm "Gold market news today Google Finance" hoặc "Financial news breaking today".
+      BƯỚC 3: LẤY TIN TỨC KINH TẾ XÃ HỘI (MACRO) & CHÍNH TRỊ
+      - Tìm kiếm "Gold market news today geopolitical news impact on gold" hoặc "Financial news breaking today".
       - Tìm kiếm "Economic Calendar today" (FED interest rate, CPI, Non-farm news impact).
+      - Tìm kiếm "World news geopolitical events today" có ảnh hưởng đến tâm lý nhà đầu tư.
 
       BƯỚC 4: TỔNG HỢP BÁO CÁO
       - Tổng hợp các dữ liệu thô tìm được vào JSON.
@@ -153,6 +180,12 @@ export const fetchMarketAnalysis = async (): Promise<{ marketData: MarketData; r
                 dxyValue: { type: Type.NUMBER },
                 sjcBuy: { type: Type.NUMBER, description: "Giá mua SJC (Triệu đồng)" },
                 sjcSell: { type: Type.NUMBER, description: "Giá bán SJC (Triệu đồng)" },
+                pnjBuy: { type: Type.NUMBER, description: "Giá mua PNJ (Triệu đồng)" },
+                pnjSell: { type: Type.NUMBER, description: "Giá bán PNJ (Triệu đồng)" },
+                btmcBuy: { type: Type.NUMBER, description: "Giá mua Bảo Tín Minh Châu (Triệu đồng)" },
+                btmcSell: { type: Type.NUMBER, description: "Giá bán Bảo Tín Minh Châu (Triệu đồng)" },
+                dojiBuy: { type: Type.NUMBER, description: "Giá mua DOJI (Triệu đồng)" },
+                dojiSell: { type: Type.NUMBER, description: "Giá bán DOJI (Triệu đồng)" },
                 ringGoldBuy: { type: Type.NUMBER, description: "Giá mua Vàng Nhẫn 9999 (Triệu đồng)" },
                 ringGoldSell: { type: Type.NUMBER, description: "Giá bán Vàng Nhẫn 9999 (Triệu đồng)" },
                 usdVnd: { type: Type.NUMBER, description: "Tỷ giá USD/VND" },
@@ -201,9 +234,23 @@ export const fetchMarketAnalysis = async (): Promise<{ marketData: MarketData; r
                   },
                   required: ["rsi", "stochastic", "adx", "cci", "trend", "support", "resistance", "macd", "bollinger", "ma50", "ma200"]
                 },
-                fullReport: { type: Type.STRING, description: "Báo cáo chuyên sâu tổng hợp" }
+                fullReport: { type: Type.STRING, description: "Báo cáo chuyên sâu tổng hợp" },
+                news: {
+                  type: Type.ARRAY,
+                  items: {
+                    type: Type.OBJECT,
+                    properties: {
+                      title: { type: Type.STRING },
+                      source: { type: Type.STRING },
+                      summary: { type: Type.STRING },
+                      category: { type: Type.STRING, enum: ["MARKET", "GEOPOLITICAL", "MACRO"] },
+                      timestamp: { type: Type.STRING }
+                    },
+                    required: ["title", "source", "summary", "category", "timestamp"]
+                  }
+                }
               },
-              required: ["technicalSummary", "macroSummary", "localSpreadAnalysis", "tradingAction", "prediction", "shortTermTrend", "longTermTrend", "suggestedBuyZone", "entryPointBuy", "entryPointSell", "technicalSignals", "fullReport"]
+              required: ["technicalSummary", "macroSummary", "localSpreadAnalysis", "tradingAction", "prediction", "shortTermTrend", "longTermTrend", "suggestedBuyZone", "entryPointBuy", "entryPointSell", "technicalSignals", "fullReport", "news"]
             }
           },
           required: ["marketData", "report"]
@@ -226,7 +273,7 @@ export const fetchMarketAnalysis = async (): Promise<{ marketData: MarketData; r
 
     if (xau > 0 && usdVnd > 0 && sjcSell > 0) {
       // Formula: (XAU * USDVND * 1.205) / 1,000,000 = Converted Price (Million VND/Tael)
-      const convertedPrice = (xau * usdVnd * 1.205) / 1000000;
+      const convertedPrice = (xau * usdVnd * ANALYSIS_CONSTANTS.GOLD_CONVERSION_FACTOR) / 1000000;
 
       // Spread = SJC Sell - Converted Price
       const spread = sjcSell - convertedPrice;
@@ -238,18 +285,43 @@ export const fetchMarketAnalysis = async (): Promise<{ marketData: MarketData; r
       console.warn("Missing data for spread calculation", { xau, usdVnd, sjcSell });
     }
 
-    // --- ALGORITHMIC VERIFICATION ---
-    // 1. Calculate Pivot Points if OHLC is available
-    if (result.marketData.ohlc && result.marketData.ohlc.high && result.marketData.ohlc.low && result.marketData.ohlc.close) {
-        const { high, low, close } = result.marketData.ohlc;
-        const pivots = calculatePivotPoints(high, low, close);
-        // Inject into technical signals
-        result.report.technicalSignals.pivotPoints = pivots;
+    // --- ALGORITHMIC VERIFICATION & ENRICHMENT ---
+    // 1. Calculate Pivot Points & Fibonacci if OHLC is available
+    if (result.marketData.ohlc) {
+        const { high, low, close, open } = result.marketData.ohlc;
+
+        if (high && low && close) {
+            const pivots = calculatePivotPoints(high, low, close);
+            result.report.technicalSignals.pivotPoints = pivots;
+        }
+
+        if (high && low && open && close) {
+             const fibs = calculateFibonacciLevels(high, low, open, close);
+             result.report.technicalSignals.fibonacciLevels = fibs;
+        }
     }
 
     // 2. Calculate Trend Confidence Score
     const confidence = calculateTrendConfidence(result.report.technicalSignals);
     result.report.technicalSignals.confidenceScore = confidence;
+
+    // 3. Generate Algorithmic Insight & Action
+    const algoAction = calculateTechnicalAction(result.report.technicalSignals);
+    const algoInsight = generateMarketInsight(result.report.technicalSignals);
+
+    // Cross-verify Action: If AI is 'QUAN SÁT' (Neutral) but Math is decisive, use Math
+    if (result.report.tradingAction === UI_LABELS.ACTION.OBSERVE && algoAction !== UI_LABELS.ACTION.OBSERVE) {
+        result.report.tradingAction = algoAction as any;
+    }
+
+    // Append algorithmic insight to technical summary
+    result.report.technicalSummary = `${result.report.technicalSummary}\n\n[Hệ thống]: ${algoInsight}`;
+
+    // 4. Local Premium Analysis
+    if (result.marketData.spread !== undefined) {
+        const premiumAdvice = analyzeLocalPremium(result.marketData.spread);
+        result.report.localSpreadAnalysis = `${result.report.localSpreadAnalysis}\n\n${premiumAdvice}`;
+    }
 
     return result;
 

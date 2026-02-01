@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react';
 import PriceCard from './components/PriceCard';
 import MarketChart from './components/MarketChart';
 import AnalysisPanel from './components/AnalysisPanel';
+import LocalGoldTable from './components/LocalGoldTable';
+import NewsSection from './components/NewsSection';
 import AdvancedTechnicals from './components/AdvancedTechnicals';
 import DetailedAnalysis from './components/DetailedAnalysis';
 import MarketSnapshot from './components/MarketSnapshot';
@@ -9,6 +11,7 @@ import ChatWidget from './components/ChatWidget';
 import SettingsModal from './components/SettingsModal';
 import { fetchMarketAnalysis } from './services/geminiService';
 import { MarketData, AnalysisReport } from './types';
+import { ANALYSIS_CONSTANTS } from './utils/constants';
 import { useToast } from './contexts/ToastContext';
 import html2canvas from 'html2canvas';
 import { jsPDF } from 'jspdf';
@@ -46,7 +49,7 @@ const App: React.FC = () => {
     loadData();
     const intervalId = setInterval(() => {
       loadData();
-    }, 30 * 60 * 1000);
+    }, ANALYSIS_CONSTANTS.REFRESH_INTERVAL_MS);
     return () => clearInterval(intervalId);
   }, []);
 
@@ -71,19 +74,19 @@ const App: React.FC = () => {
       placeholder.style.padding = '20px';
       
       const sigs = reportData.technicalSignals;
-      const sentiment = sigs.rsi > 60 ? 'BULLISH' : sigs.rsi < 40 ? 'BEARISH' : 'NEUTRAL';
-      const sentimentColor = sentiment === 'BULLISH' ? '#10b981' : sentiment === 'BEARISH' ? '#f43f5e' : '#eab308';
+      const sentiment = sigs.confidenceScore?.label || 'TRUNG LẬP';
+      const sentimentColor = (sentiment.includes('TÍCH CỰC') || sentiment.includes('BULLISH')) ? '#10b981' : (sentiment.includes('TIÊU CỰC') || sentiment.includes('BEARISH')) ? '#f43f5e' : '#eab308';
 
       placeholder.innerHTML = `
         <div style="border: 1px solid #334155; border-radius: 24px; padding: 40px; background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); width: 95%; height: 90%; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); font-family: 'Inter', sans-serif; color: white; display: flex; flex-direction: column; justify-content: space-between;">
           <div>
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
               <div>
-                <div style="color: #eab308; font-size: 28px; font-weight: 900; letter-spacing: 2px;">MARKET SNAPSHOT</div>
-                <div style="color: #64748b; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin-top: 4px;">Technical Confluence Report</div>
+                <div style="color: #eab308; font-size: 28px; font-weight: 900; letter-spacing: 2px;">TỔNG QUAN THỊ TRƯỜNG</div>
+                <div style="color: #64748b; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin-top: 4px;">Báo cáo Hội tụ Kỹ thuật</div>
               </div>
               <div style="background: ${sentimentColor}20; border: 1px solid ${sentimentColor}50; padding: 10px 20px; border-radius: 12px; text-align: right;">
-                <div style="color: #64748b; font-size: 10px; font-weight: 800; text-transform: uppercase;">SENTIMENT</div>
+                <div style="color: #64748b; font-size: 10px; font-weight: 800; text-transform: uppercase;">TÂM LÝ</div>
                 <div style="color: ${sentimentColor}; font-size: 24px; font-weight: 900;">${sentiment}</div>
               </div>
             </div>
@@ -125,7 +128,7 @@ const App: React.FC = () => {
                <div style="color: #fff; font-size: 14px; font-weight: 600; line-height: 1.5;">${reportData.technicalSummary.substring(0, 150)}...</div>
             </div>
             <div style="text-align: right;">
-               <div style="color: #475569; font-size: 9px; font-weight: 900; font-family: monospace;">AIA TERMINAL PROTOCOL // ${new Date().toISOString()}</div>
+               <div style="color: #475569; font-size: 9px; font-weight: 900; font-family: monospace;">GIA TERMINAL PROTOCOL // ${new Date().toISOString()}</div>
             </div>
           </div>
         </div>
@@ -168,7 +171,7 @@ const App: React.FC = () => {
         useCORS: true,
         backgroundColor: '#0f172a',
         logging: false,
-        windowWidth: 1600,
+        windowWidth: ANALYSIS_CONSTANTS.EXPORT_WINDOW_WIDTH,
       });
       cleanupExport();
       
@@ -200,7 +203,7 @@ const App: React.FC = () => {
         useCORS: true,
         backgroundColor: '#0f172a',
         logging: false,
-        windowWidth: 1600,
+        windowWidth: ANALYSIS_CONSTANTS.EXPORT_WINDOW_WIDTH,
       });
       cleanupExport();
       const link = document.createElement('a');
@@ -229,7 +232,7 @@ const App: React.FC = () => {
         <div className="mb-10 flex flex-col md:flex-row md:items-end justify-between gap-6 px-2">
           <div>
             <div className="flex items-center gap-3 mb-2">
-               <span className="px-2 py-1 bg-yellow-500/10 border border-yellow-500/20 text-yellow-500 text-[10px] font-black rounded uppercase tracking-widest">Live Terminal</span>
+               <span className="px-2 py-1 bg-yellow-500/10 border border-yellow-500/20 text-yellow-500 text-[10px] font-black rounded uppercase tracking-widest">Dữ liệu Trực tuyến</span>
                <span className="text-slate-500 text-sm font-mono tracking-tighter">{marketData?.lastUpdated}</span>
             </div>
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-black text-white tracking-tighter leading-none">
@@ -237,7 +240,7 @@ const App: React.FC = () => {
             </h1>
             <p className="text-slate-400 mt-2 font-medium tracking-wide flex items-center gap-2">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]"></span>
-              Neural Engine v1.2.5 • Detailed Snapshot Protocol
+              Hệ thống Phân tích Vàng Thông minh {ANALYSIS_CONSTANTS.APP_VERSION}
             </p>
           </div>
 
@@ -257,14 +260,14 @@ const App: React.FC = () => {
                 disabled={isPdfGenerating || isPngGenerating || loading}
                 className="flex items-center gap-2 px-5 py-3 rounded-xl bg-white/5 hover:bg-white/10 border border-slate-700 font-bold text-xs uppercase tracking-widest transition-all hover:border-slate-500 disabled:opacity-30 active:scale-95"
              >
-                {isPdfGenerating ? '...' : 'PDF Report'}
+                {isPdfGenerating ? '...' : 'Báo cáo PDF'}
              </button>
              <button
                 onClick={handleDownloadPng}
                 disabled={isPdfGenerating || isPngGenerating || loading}
                 className="flex items-center gap-2 px-5 py-3 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs uppercase tracking-widest transition-all shadow-lg shadow-blue-600/20 active:scale-95"
              >
-                {isPngGenerating ? '...' : 'Snapshot'}
+                {isPngGenerating ? '...' : 'Chụp ảnh'}
              </button>
           </div>
         </div>
@@ -311,6 +314,11 @@ const App: React.FC = () => {
         {/* NEW: Market Snapshot Pulse Section */}
         {report && marketData && <MarketSnapshot report={report} marketData={marketData} />}
 
+        {/* Vietnamese Gold Prices Comparison */}
+        <div className="mb-10">
+           {marketData && <LocalGoldTable data={marketData} />}
+        </div>
+
         {/* Main Content Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 md:gap-10 mb-10">
           <div className="lg:col-span-3 space-y-10">
@@ -341,9 +349,14 @@ const App: React.FC = () => {
           {report && <DetailedAnalysis report={report} />}
           {!report && loading && (
              <div className="h-64 bg-slate-800/40 rounded-2xl border border-slate-700/50 animate-pulse flex items-center justify-center">
-                <span className="text-slate-500 font-black uppercase tracking-widest text-xs">Synthesizing detailed trends...</span>
+                <span className="text-slate-500 font-black uppercase tracking-widest text-xs">Đang phân tích xu hướng chi tiết...</span>
              </div>
           )}
+        </div>
+
+        {/* News Section */}
+        <div className="mb-16">
+           {report && <NewsSection news={report.news} />}
         </div>
 
         {/* Secondary Info Row */}
@@ -357,7 +370,7 @@ const App: React.FC = () => {
                <div className="flex justify-between items-center text-sm mt-4">
                   <span className="text-slate-400 font-bold">Quy đổi TG</span>
                   <span className="text-yellow-500 font-mono font-black text-lg">
-                    {marketData ? ((marketData.xauPrice * marketData.usdVnd * 1.205) / 1000000).toFixed(2) + ' tr' : '...'}
+                    {marketData ? ((marketData.xauPrice * marketData.usdVnd * ANALYSIS_CONSTANTS.GOLD_CONVERSION_FACTOR) / 1000000).toFixed(2) + ' tr' : '...'}
                   </span>
                </div>
             </div>
