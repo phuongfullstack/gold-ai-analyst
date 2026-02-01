@@ -30,10 +30,26 @@ const MarketSnapshot: React.FC<MarketSnapshotProps> = ({ report, marketData }) =
       {/* Sentiment Box */}
       <div className={`p-6 rounded-3xl border border-slate-700/50 ${sentiment.bg} flex items-center gap-6 shadow-xl`}>
         <div className="text-4xl">{sentiment.icon}</div>
-        <div>
+        <div className="flex-1">
           <div className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Tâm lý Thị trường</div>
-          <div className={`text-2xl font-black ${sentiment.color} tracking-tighter`}>{sentiment.label}</div>
-          <div className="text-xs text-slate-400 font-medium">Hội tụ kỹ thuật đa khung</div>
+          <div className={`text-2xl font-black ${sentiment.color} tracking-tighter flex items-center gap-3`}>
+            {sentiment.label}
+            {technicalSignals.confidenceScore && (
+              <span className="text-xs bg-white/10 px-2 py-0.5 rounded-full border border-white/10">{technicalSignals.confidenceScore.score}%</span>
+            )}
+          </div>
+          {technicalSignals.confidenceScore && (
+             <div className="mt-2 w-full h-1.5 bg-slate-950/50 rounded-full overflow-hidden p-0.5 border border-white/5">
+                <div
+                  className={`h-full rounded-full transition-all duration-1000 ${
+                    technicalSignals.confidenceScore.score >= 70 ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]' :
+                    technicalSignals.confidenceScore.score >= 50 ? 'bg-yellow-500' : 'bg-rose-500'
+                  }`}
+                  style={{ width: `${technicalSignals.confidenceScore.score}%` }}
+                ></div>
+             </div>
+          )}
+          <div className="text-[9px] text-slate-400 font-medium mt-1 uppercase tracking-tighter italic">Hệ thống phân tích đa khung thời gian</div>
         </div>
       </div>
 

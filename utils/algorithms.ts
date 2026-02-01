@@ -182,6 +182,26 @@ export const generateMarketInsight = (signals: TechnicalSignals): string => {
 };
 
 /**
+ * Provides a more granular trend analysis based on multiple indicators.
+ */
+export const analyzeTrendStrength = (signals: TechnicalSignals) => {
+    const { score, label } = calculateTrendConfidence(signals);
+
+    const indicators = [
+        { name: 'RSI', value: signals.rsi, status: signals.rsi > 70 ? 'Overbought' : signals.rsi < 30 ? 'Oversold' : 'Neutral' },
+        { name: 'MA50', status: signals.ma50 === 'ABOVE' ? 'Bullish' : 'Bearish' },
+        { name: 'MA200', status: signals.ma200 === 'ABOVE' ? 'Bullish' : 'Bearish' },
+        { name: 'ADX', value: signals.adx, status: signals.adx > 25 ? 'Strong Trend' : 'Weak Trend' }
+    ];
+
+    return {
+        score,
+        label,
+        indicators
+    };
+};
+
+/**
  * Analyzes the local SJC spread vs world gold price.
  */
 export const analyzeLocalPremium = (spread: number): string => {

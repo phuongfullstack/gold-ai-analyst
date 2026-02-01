@@ -1,4 +1,5 @@
 import React from 'react';
+import LoadingIcon from './LoadingIcon';
 
 interface PriceCardProps {
   title: string;
@@ -7,9 +8,10 @@ interface PriceCardProps {
   trend?: 'up' | 'down' | 'neutral';
   color?: string;
   icon?: React.ReactNode;
+  isLoading?: boolean;
 }
 
-const PriceCard: React.FC<PriceCardProps> = ({ title, value, subValue, color = "blue", icon }) => {
+const PriceCard: React.FC<PriceCardProps> = ({ title, value, subValue, color = "blue", icon, isLoading }) => {
   const getColorClass = () => {
     switch (color) {
       case 'gold': return 'text-yellow-400 border-yellow-500/30 bg-yellow-500/10';
@@ -29,8 +31,12 @@ const PriceCard: React.FC<PriceCardProps> = ({ title, value, subValue, color = "
       </div>
       
       <div className="flex flex-col">
-        <div className="text-xl md:text-2xl lg:text-3xl font-black tracking-tight leading-none break-words">
-          {value}
+        <div className="text-xl md:text-2xl lg:text-3xl font-black tracking-tight leading-none break-words flex items-center gap-2">
+          {isLoading || value === '...' ? (
+            <LoadingIcon className="opacity-50" size={24} />
+          ) : (
+            value
+          )}
         </div>
         {subValue && (
           <div className="mt-1.5 text-[10px] md:text-xs opacity-70 font-medium uppercase tracking-tighter">

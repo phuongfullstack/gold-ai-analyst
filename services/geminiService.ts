@@ -134,6 +134,7 @@ export const fetchMarketAnalysis = async (): Promise<{ marketData: MarketData; r
         + RSI (14), Stochastic Oscillator (14, 3, 3), CCI (20), ADX (14).
         + Giá so với MA50 và MA200.
         + Bollinger Bands, MACD Level & Signal.
+      - Nhận diện các mẫu hình giá (Price Patterns) hiện tại: ví dụ Double Top, Double Bottom, Head and Shoulders, Triangle, Flag, Pennant, v.v.
 
       BƯỚC 3: LẤY TIN TỨC KINH TẾ XÃ HỘI (MACRO) & CHÍNH TRỊ
       - Tìm kiếm "Gold market news today geopolitical news impact on gold" hoặc "Financial news breaking today".
@@ -223,7 +224,20 @@ export const fetchMarketAnalysis = async (): Promise<{ marketData: MarketData; r
                     macd: { type: Type.STRING },
                     bollinger: { type: Type.STRING },
                     ma50: { type: Type.STRING, enum: ["ABOVE", "BELOW"] },
-                    ma200: { type: Type.STRING, enum: ["ABOVE", "BELOW"] }
+                    ma200: { type: Type.STRING, enum: ["ABOVE", "BELOW"] },
+                    pricePatterns: {
+                      type: Type.ARRAY,
+                      items: {
+                        type: Type.OBJECT,
+                        properties: {
+                          name: { type: Type.STRING },
+                          type: { type: Type.STRING, enum: ["BULLISH", "BEARISH", "NEUTRAL"] },
+                          reliability: { type: Type.STRING, enum: ["HIGH", "MEDIUM", "LOW"] },
+                          description: { type: Type.STRING }
+                        },
+                        required: ["name", "type", "reliability", "description"]
+                      }
+                    }
                   },
                   required: ["rsi", "stochastic", "adx", "cci", "trend", "support", "resistance", "macd", "bollinger", "ma50", "ma200"]
                 },

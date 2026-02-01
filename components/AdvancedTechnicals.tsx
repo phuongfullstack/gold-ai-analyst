@@ -181,6 +181,44 @@ const AdvancedTechnicals: React.FC<AdvancedTechnicalsProps> = ({ signals }) => {
           )}
         </div>
       </div>
+
+      {/* Price Patterns Section */}
+      {signals.pricePatterns && signals.pricePatterns.length > 0 && (
+        <div className="mt-8 pt-6 border-t border-slate-700/50">
+          <h4 className="text-white text-xs font-black uppercase tracking-widest mb-4 flex items-center gap-2">
+            <span className="text-yellow-500">🔍</span> Mô hình Giá được nhận diện
+          </h4>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {signals.pricePatterns.map((pattern, idx) => (
+              <div key={idx} className="bg-slate-900/50 p-4 rounded-xl border border-slate-700/30 flex flex-col gap-2">
+                <div className="flex justify-between items-center">
+                  <span className="text-sm font-bold text-white">{pattern.name}</span>
+                  <span className={`text-[10px] font-black px-2 py-0.5 rounded border ${
+                    pattern.type === 'BULLISH' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' :
+                    pattern.type === 'BEARISH' ? 'bg-rose-500/10 text-rose-400 border-rose-500/20' :
+                    'bg-slate-500/10 text-slate-400 border-slate-500/20'
+                  }`}>
+                    {pattern.type}
+                  </span>
+                </div>
+                <p className="text-xs text-slate-400 leading-relaxed">{pattern.description}</p>
+                <div className="flex items-center gap-2 mt-1">
+                  <span className="text-[9px] text-slate-500 font-bold uppercase">Độ tin cậy:</span>
+                  <div className="flex gap-1">
+                    {[1, 2, 3].map(i => (
+                      <div key={i} className={`w-3 h-1 rounded-full ${
+                        i <= (pattern.reliability === 'HIGH' ? 3 : pattern.reliability === 'MEDIUM' ? 2 : 1)
+                        ? (pattern.type === 'BULLISH' ? 'bg-emerald-500' : pattern.type === 'BEARISH' ? 'bg-rose-500' : 'bg-blue-500')
+                        : 'bg-slate-700'
+                      }`}></div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 };
