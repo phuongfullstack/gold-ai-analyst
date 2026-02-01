@@ -9,6 +9,7 @@ import DetailedAnalysis from './components/DetailedAnalysis';
 import MarketSnapshot from './components/MarketSnapshot';
 import ChatWidget from './components/ChatWidget';
 import SettingsModal from './components/SettingsModal';
+import Footer from './components/Footer';
 import { fetchMarketAnalysis } from './services/geminiService';
 import { MarketData, AnalysisReport } from './types';
 import { ANALYSIS_CONSTANTS } from './utils/constants';
@@ -497,6 +498,8 @@ const App: React.FC = () => {
         onClose={() => setIsSettingsOpen(false)}
         onSave={loadData}
       />
+      
+      <Footer />
     </div>
   );
 };
