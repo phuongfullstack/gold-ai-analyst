@@ -71,7 +71,7 @@ const fetchFallbackData = async (): Promise<{ marketData: MarketData; report: An
     };
 
     const report: AnalysisReport = {
-      technicalSummary: "Chế độ dữ liệu thời gian thực (Toán học). Dữ liệu kỹ thuật đang sử dụng các mốc mặc định do thiếu AI Engine.",
+      technicalSummary: "Chế độ dữ liệu thời gian thực (Toán học). Dữ liệu kỹ thuật đang sử dụng các mốc mặc định do thiếu kết nối phân tích.",
       macroSummary: "Dữ liệu Vĩ mô không khả dụng trong chế độ toán học thuần túy.",
       localSpreadAnalysis: "Đang phân tích chênh lệch giá...",
       tradingAction: UI_LABELS.ACTION.OBSERVE as any,
@@ -113,7 +113,7 @@ const fetchFallbackData = async (): Promise<{ marketData: MarketData; report: An
 
   } catch (error) {
     console.error("Fallback fetch failed:", error);
-    throw new Error("Không thể tải dữ liệu thị trường (Cả AI và Fallback đều thất bại).");
+    throw new Error("Không thể tải dữ liệu thị trường (Cả hai chế độ đều thất bại).");
   }
 };
 
