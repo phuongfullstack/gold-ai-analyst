@@ -42,6 +42,9 @@ export interface MarketData {
   dojiSell: number;
   ringGoldBuy: number;
   ringGoldSell: number;
+  xagPrice: number;
+  silverBuy: number;
+  silverSell: number;
   usdVnd: number;
   spread: number;
   lastUpdated: string;

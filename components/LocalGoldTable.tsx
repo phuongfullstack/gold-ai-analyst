@@ -12,6 +12,7 @@ const LocalGoldTable: React.FC<LocalGoldTableProps> = ({ data }) => {
     { name: 'DOJI (Hà Nội/HCM)', buy: data.dojiBuy, sell: data.dojiSell },
     { name: 'Bảo Tín Minh Châu', buy: data.btmcBuy, sell: data.btmcSell },
     { name: 'Vàng Nhẫn 9999', buy: data.ringGoldBuy, sell: data.ringGoldSell },
+    { name: 'Bạc Trong nước', buy: data.silverBuy, sell: data.silverSell },
   ];
 
   const formatPrice = (price: number) => {

@@ -11,6 +11,13 @@ import ChatWidget from './components/ChatWidget';
 import SettingsModal from './components/SettingsModal';
 import Footer from './components/Footer';
 import { fetchMarketAnalysis } from './services/geminiService';
+import {
+  fetchWorldAndRates,
+  fetchDojiData,
+  fetchScrapedData,
+  fetchVnAppMobData,
+  fetchSjcXmlData
+} from './services/marketDataFetcher';
 import { MarketData, AnalysisReport } from './types';
 import { ANALYSIS_CONSTANTS } from './utils/constants';
 import { useToast } from './contexts/ToastContext';
@@ -18,8 +25,29 @@ import html2canvas from 'html2canvas';
 import { jsPDF } from 'jspdf';
 import { createChart, ColorType } from 'lightweight-charts';
 
+const INITIAL_MARKET_DATA: MarketData = {
+  xauPrice: 0,
+  xagPrice: 0,
+  dxyValue: 0,
+  sjcBuy: 0,
+  sjcSell: 0,
+  pnjBuy: 0,
+  pnjSell: 0,
+  btmcBuy: 0,
+  btmcSell: 0,
+  dojiBuy: 0,
+  dojiSell: 0,
+  ringGoldBuy: 0,
+  ringGoldSell: 0,
+  silverBuy: 0,
+  silverSell: 0,
+  usdVnd: 0,
+  spread: 0,
+  lastUpdated: '...',
+};
+
 const App: React.FC = () => {
-  const [marketData, setMarketData] = useState<MarketData | null>(null);
+  const [marketData, setMarketData] = useState<MarketData>(INITIAL_MARKET_DATA);
   const [report, setReport] = useState<AnalysisReport | null>(null);
   const [loading, setLoading] = useState(false);
   const [isPdfGenerating, setIsPdfGenerating] = useState(false);
@@ -29,22 +57,56 @@ const App: React.FC = () => {
 
   const loadData = async () => {
     setLoading(true);
-    try {
-      const data = await fetchMarketAnalysis();
-      setMarketData(data.marketData);
+
+    const vnAppMobToken = localStorage.getItem("VNAPPMOB_API_KEY");
+
+    // Helper to calculate silver and update state
+    const updateMarketState = (partial: Partial<MarketData>) => {
+      setMarketData(prev => {
+        const newState = { ...prev, ...partial };
+        // Recalculate silver if possible
+        if (newState.xagPrice > 0 && newState.usdVnd > 0 && (!newState.silverSell || newState.silverSell === 0)) {
+           const basePrice = (newState.xagPrice * newState.usdVnd * 1.2057) / 1000000;
+           newState.silverBuy = Number((basePrice * 0.95).toFixed(2));
+           newState.silverSell = Number((basePrice * 1.10).toFixed(2));
+        }
+        newState.lastUpdated = new Date().toLocaleTimeString('vi-VN');
+        return newState;
+      });
+    };
+
+    // 1. Parallel Asynchronous Fetching for individual metrics
+    const tasks = [
+      fetchWorldAndRates().then(updateMarketState),
+      fetchSjcXmlData().then(updateMarketState),
+      fetchDojiData().then(updateMarketState),
+      fetchScrapedData().then(updateMarketState)
+    ];
+
+    if (vnAppMobToken) {
+      tasks.push(fetchVnAppMobData(vnAppMobToken).then(updateMarketState));
+    }
+
+    // 2. AI Analysis in parallel - can take longer
+    fetchMarketAnalysis().then(data => {
       setReport(data.report);
+      setMarketData(prev => ({ ...prev, ...data.marketData }));
 
       if (data.report.prediction.includes("Safe Mode")) {
          showToast("Đang chạy ở chế độ Safe Mode (Offline)", "warning");
       } else {
          showToast("Dữ liệu thị trường đã được cập nhật", "success");
       }
-    } catch (err) {
-      console.error(err);
-      showToast("Không thể tải dữ liệu thị trường. Vui lòng kiểm tra kết nối.", "error");
-    } finally {
+    }).catch(err => {
+      console.error("AI analysis failed:", err);
+      showToast("Không thể tải báo cáo AI.", "error");
+    }).finally(() => {
       setLoading(false);
-    }
+    });
+
+    // We don't necessarily need to await 'tasks' here for the AI to start,
+    // but we want them to run as soon as loadData is called.
+    Promise.allSettled(tasks);
   };
 
   useEffect(() => {
@@ -368,40 +430,47 @@ const App: React.FC = () => {
         </div>
 
         {/* Top Metrics Row */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6 md:gap-6 mb-10">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-6 md:gap-6 mb-10">
           <PriceCard 
             title="XAU/USD Spot" 
-            value={marketData ? `$${marketData.xauPrice.toLocaleString()}` : '...'}
+            value={marketData.xauPrice > 0 ? `$${marketData.xauPrice.toLocaleString()}` : '...'}
             subValue="Thế giới (Global)"
             color="gold"
             icon={<span>🏆</span>}
           />
           <PriceCard 
-            title="DXY Index" 
-            value={marketData ? marketData.dxyValue.toFixed(3) : '...'}
-            subValue="Đô-la Mỹ (Strength)"
+            title="XAG/USD Spot"
+            value={marketData.xagPrice > 0 ? `$${marketData.xagPrice.toFixed(2)}` : '...'}
+            subValue="Bạc Thế giới"
             color="blue"
-            icon={<span>💵</span>}
+            icon={<span>🥈</span>}
           />
           <PriceCard 
             title="SJC Vietnam" 
-            value={marketData && marketData.sjcSell > 0 ? `${marketData.sjcSell} tr` : 'N/A'}
-            subValue={marketData && marketData.sjcBuy > 0 ? `Mua: ${marketData.sjcBuy}` : 'Mua: N/A'}
+            value={marketData.sjcSell > 0 ? `${marketData.sjcSell} tr` : '...'}
+            subValue={marketData.sjcBuy > 0 ? `Mua: ${marketData.sjcBuy}` : 'Mua: ...'}
             color="red"
             icon={<span>🇻🇳</span>}
           />
           <PriceCard
             title="Vàng Nhẫn 9999"
-            value={marketData && marketData.ringGoldSell > 0 ? `${marketData.ringGoldSell} tr` : 'N/A'}
-            subValue={marketData && marketData.ringGoldBuy > 0 ? `Mua: ${marketData.ringGoldBuy}` : 'Mua: N/A'}
+            value={marketData.ringGoldSell > 0 ? `${marketData.ringGoldSell} tr` : '...'}
+            subValue={marketData.ringGoldBuy > 0 ? `Mua: ${marketData.ringGoldBuy}` : 'Mua: ...'}
             color="gold"
             icon={<span>💍</span>}
           />
+          <PriceCard
+            title="Bạc Trong nước"
+            value={marketData.silverSell > 0 ? `${marketData.silverSell} tr` : '...'}
+            subValue={marketData.silverBuy > 0 ? `Mua: ${marketData.silverBuy}` : 'Mua: ...'}
+            color="blue"
+            icon={<span>🌑</span>}
+          />
           <PriceCard 
             title="Premium/Spread" 
-            value={marketData && marketData.sjcSell > 0 && marketData.spread !== 0 ? `+${marketData.spread.toFixed(2)} tr` : 'N/A'}
-            subValue={marketData && marketData.sjcSell > 0 ? (marketData.spread > 5 ? "⚠️ Rủi ro cao" : "✅ Ổn định") : "Dữ liệu trống"}
-            color={marketData && marketData.sjcSell > 0 && marketData.spread > 5 ? "red" : "green"}
+            value={marketData.sjcSell > 0 && marketData.spread !== 0 ? `+${marketData.spread.toFixed(2)} tr` : '...'}
+            subValue={marketData.sjcSell > 0 ? (marketData.spread > 5 ? "⚠️ Rủi ro cao" : "✅ Ổn định") : "Đang tính toán..."}
+            color={marketData.sjcSell > 0 && marketData.spread > 5 ? "red" : "green"}
             icon={<span>📊</span>}
           />
         </div>
@@ -466,6 +535,12 @@ const App: React.FC = () => {
                   <span className="text-slate-400 font-bold">Quy đổi TG</span>
                   <span className="text-yellow-500 font-mono font-black text-lg">
                     {marketData ? ((marketData.xauPrice * marketData.usdVnd * ANALYSIS_CONSTANTS.GOLD_CONVERSION_FACTOR) / 1000000).toFixed(2) + ' tr' : '...'}
+                  </span>
+               </div>
+               <div className="flex justify-between items-center text-sm mt-2">
+                  <span className="text-slate-400 font-bold">Bạc quy đổi</span>
+                  <span className="text-blue-400 font-mono font-black">
+                    {marketData ? ((marketData.xagPrice * marketData.usdVnd * 1.205) / 1000000).toFixed(2) + ' tr' : '...'}
                   </span>
                </div>
             </div>
