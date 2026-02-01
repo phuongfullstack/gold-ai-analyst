@@ -34,7 +34,7 @@ const App: React.FC = () => {
       setReport(data.report);
 
       if (data.report.prediction.includes("Safe Mode")) {
-         showToast("Đang chạy ở chế độ Safe Mode (Không có AI)", "warning");
+         showToast("Đang chạy ở chế độ Safe Mode (Offline)", "warning");
       } else {
          showToast("Dữ liệu thị trường đã được cập nhật", "success");
       }
@@ -298,7 +298,7 @@ const App: React.FC = () => {
       });
 
       const link = document.createElement('a');
-      link.download = `Gold_AI_Snapshot_${new Date().toISOString().split('T')[0]}.png`;
+      link.download = `Gold_Market_Report_${new Date().toISOString().split('T')[0]}.png`;
       link.href = canvas.toDataURL('image/png');
       link.click();
 
@@ -330,7 +330,7 @@ const App: React.FC = () => {
                <span className="text-slate-500 text-sm font-mono tracking-tighter">{marketData?.lastUpdated}</span>
             </div>
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-black text-white tracking-tighter leading-none">
-              <span className="text-yellow-500">GOLD</span> AI ANALYST
+              <span className="text-yellow-500">GOLD</span> MARKET ANALYST
             </h1>
             <p className="text-slate-400 mt-2 font-medium tracking-wide flex items-center gap-2">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]"></span>
@@ -482,7 +482,7 @@ const App: React.FC = () => {
                </div>
                <div className="text-right flex flex-col items-end">
                   <div className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Worker Version</div>
-                  <div className="text-slate-400 font-mono text-xs px-2 py-1 bg-slate-800 rounded border border-slate-700">AIA-2025-V1.2.5-ULTRA</div>
+                  <div className="text-slate-400 font-mono text-xs px-2 py-1 bg-slate-800 rounded border border-slate-700">GMA-2025-V1.2.5-ULTRA</div>
                </div>
             </div>
         </div>

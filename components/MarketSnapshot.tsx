@@ -48,7 +48,7 @@ const MarketSnapshot: React.FC<MarketSnapshotProps> = ({ report, marketData }) =
             </li>
             <li className="flex items-center gap-2 text-xs md:text-sm text-slate-200">
               <span className="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
-              Khoảng cách hỗ trợ AI: <span className="text-emerald-400 font-bold">${(marketData.xauPrice - technicalSignals.support).toFixed(1)}</span>
+              Khoảng cách tới hỗ trợ: <span className="text-emerald-400 font-bold">${(marketData.xauPrice - technicalSignals.support).toFixed(1)}</span>
             </li>
           </ul>
         </div>
