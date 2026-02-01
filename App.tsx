@@ -70,6 +70,13 @@ const App: React.FC = () => {
            newState.silverBuy = Number((basePrice * 0.95).toFixed(2));
            newState.silverSell = Number((basePrice * 1.10).toFixed(2));
         }
+
+        // Recalculate spread if possible
+        if (newState.xauPrice > 0 && newState.usdVnd > 0 && newState.sjcSell > 0) {
+           const convertedPrice = (newState.xauPrice * newState.usdVnd * ANALYSIS_CONSTANTS.GOLD_CONVERSION_FACTOR) / 1000000;
+           newState.spread = Number((newState.sjcSell - convertedPrice).toFixed(2));
+        }
+
         newState.lastUpdated = new Date().toLocaleTimeString('vi-VN');
         return newState;
       });
