@@ -99,6 +99,18 @@ const fetchFallbackData = async (): Promise<{ marketData: MarketData; report: An
     };
 
     // Apply Algorithmic Engine to Fallback Data
+    // Mock chart data for fallback
+    const mockChartData: ChartDataPoint[] = [];
+    const baseTime = Math.floor(Date.now() / 1000);
+    for (let i = 24; i >= 0; i--) {
+      mockChartData.push({
+        time: (baseTime - i * 3600).toString(),
+        xau: xauPrice - (Math.random() * 10 - 5),
+        dxy: dxyValue - (Math.random() * 0.5 - 0.25)
+      });
+    }
+    report.chartData = mockChartData;
+
     const confidence = calculateTrendConfidence(report.technicalSignals);
     report.technicalSignals.confidenceScore = confidence;
 
@@ -154,7 +166,11 @@ export const fetchMarketAnalysis = async (): Promise<{ marketData: MarketData; r
       - Tìm kiếm "Economic Calendar today" (FED interest rate, CPI, Non-farm news impact).
       - Tìm kiếm "World news geopolitical events today" có ảnh hưởng đến tâm lý nhà đầu tư.
 
-      BƯỚC 4: TỔNG HỢP BÁO CÁO
+      BƯỚC 4: LẤY DỮ LIỆU LỊCH SỬ (CHART)
+      - Tìm kiếm "XAUUSD price history last 24 hours hourly" để lấy chuỗi giá vàng trong 24 giờ qua.
+      - Lấy khoảng 12-24 điểm dữ liệu (mỗi 1-2 giờ một điểm).
+
+      BƯỚC 5: TỔNG HỢP BÁO CÁO
       - Tổng hợp các dữ liệu thô tìm được vào JSON.
       - KHÔNG CẦN TÍNH TOÁN "Spread" hay "Giá quy đổi", hệ thống sẽ tự tính.
 
@@ -248,9 +264,21 @@ export const fetchMarketAnalysis = async (): Promise<{ marketData: MarketData; r
                     },
                     required: ["title", "source", "summary", "category", "timestamp"]
                   }
+                },
+                chartData: {
+                  type: Type.ARRAY,
+                  items: {
+                    type: Type.OBJECT,
+                    properties: {
+                      time: { type: Type.STRING, description: "Unix timestamp (chuỗi)" },
+                      xau: { type: Type.NUMBER, description: "Giá vàng tại thời điểm đó" },
+                      dxy: { type: Type.NUMBER, description: "Chỉ số DXY tại thời điểm đó" }
+                    },
+                    required: ["time", "xau", "dxy"]
+                  }
                 }
               },
-              required: ["technicalSummary", "macroSummary", "localSpreadAnalysis", "tradingAction", "prediction", "shortTermTrend", "longTermTrend", "suggestedBuyZone", "entryPointBuy", "entryPointSell", "technicalSignals", "fullReport", "news"]
+              required: ["technicalSummary", "macroSummary", "localSpreadAnalysis", "tradingAction", "prediction", "shortTermTrend", "longTermTrend", "suggestedBuyZone", "entryPointBuy", "entryPointSell", "technicalSignals", "fullReport", "news", "chartData"]
             }
           },
           required: ["marketData", "report"]
