@@ -219,7 +219,59 @@ const AdvancedTechnicals: React.FC<AdvancedTechnicalsProps> = ({ signals }) => {
         </div>
       </div>
 
-      {/* Price Patterns Section (Preserved) */}
+      {/* Smart Money Concepts Section */}
+      {signals.smartMoney && (
+        <div className="mt-8 pt-6 border-t border-slate-700/50">
+            <h4 className="text-white text-xs font-black uppercase tracking-widest mb-4 flex items-center gap-2">
+                <span className="text-violet-500">🏦</span> Smart Money & Market Structure
+            </h4>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Order Blocks */}
+                {signals.smartMoney.orderBlocks.length > 0 ? (
+                    <div className="bg-slate-900/50 p-4 rounded-xl border border-slate-700/30">
+                        <div className="text-[10px] font-bold text-slate-500 uppercase mb-2">Institutional Order Blocks</div>
+                        <div className="space-y-2">
+                            {signals.smartMoney.orderBlocks.map((ob, idx) => (
+                                <div key={idx} className={`flex justify-between items-center text-xs p-2 rounded border ${ob.type === 'BULLISH' ? 'bg-emerald-900/20 border-emerald-500/30' : 'bg-rose-900/20 border-rose-500/30'}`}>
+                                    <span className={`font-bold ${ob.type === 'BULLISH' ? 'text-emerald-400' : 'text-rose-400'}`}>
+                                        {ob.type === 'BULLISH' ? '🟢 Bullish OB' : '🔴 Bearish OB'}
+                                    </span>
+                                    <span className="font-mono text-slate-300">${ob.bottom.toFixed(1)} - ${ob.top.toFixed(1)}</span>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                ) : (
+                    <div className="bg-slate-900/50 p-4 rounded-xl border border-slate-700/30 text-slate-500 text-xs italic">
+                        Không phát hiện Order Block rõ ràng trong ngắn hạn.
+                    </div>
+                )}
+
+                {/* Fair Value Gaps */}
+                {signals.smartMoney.fairValueGaps.length > 0 ? (
+                    <div className="bg-slate-900/50 p-4 rounded-xl border border-slate-700/30">
+                        <div className="text-[10px] font-bold text-slate-500 uppercase mb-2">Fair Value Gaps (Imbalance)</div>
+                        <div className="space-y-2">
+                            {signals.smartMoney.fairValueGaps.slice(0, 2).map((fvg, idx) => (
+                                <div key={idx} className={`flex justify-between items-center text-xs p-2 rounded border ${fvg.type === 'BULLISH' ? 'bg-emerald-900/20 border-emerald-500/30' : 'bg-rose-900/20 border-rose-500/30'}`}>
+                                    <span className={`font-bold ${fvg.type === 'BULLISH' ? 'text-emerald-400' : 'text-rose-400'}`}>
+                                        {fvg.type === 'BULLISH' ? '⚡ Bullish FVG' : '⚡ Bearish FVG'}
+                                    </span>
+                                    <span className="font-mono text-slate-300">${fvg.bottom.toFixed(1)} - ${fvg.top.toFixed(1)}</span>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                ) : (
+                    <div className="bg-slate-900/50 p-4 rounded-xl border border-slate-700/30 text-slate-500 text-xs italic">
+                        Thị trường cân bằng, không có FVG lớn.
+                    </div>
+                )}
+            </div>
+        </div>
+      )}
+
+      {/* Price Patterns Section */}
       {signals.pricePatterns && signals.pricePatterns.length > 0 && (
         <div className="mt-8 pt-6 border-t border-slate-700/50">
           <h4 className="text-white text-xs font-black uppercase tracking-widest mb-4 flex items-center gap-2">

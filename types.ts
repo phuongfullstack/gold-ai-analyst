@@ -43,6 +43,33 @@ export interface FibonacciLevels {
   trend: 'UP' | 'DOWN';
 }
 
+export interface OrderBlock {
+  type: 'BULLISH' | 'BEARISH';
+  top: number;
+  bottom: number;
+  significance: 'HIGH' | 'MEDIUM' | 'LOW';
+}
+
+export interface FairValueGap {
+  type: 'BULLISH' | 'BEARISH';
+  top: number;
+  bottom: number;
+  isFilled: boolean;
+}
+
+export interface HarmonicPattern {
+  name: string; // Gartley, Bat, Butterfly...
+  type: 'BULLISH' | 'BEARISH';
+  completionPrice: number;
+  stopLoss: number;
+  takeProfit: number;
+}
+
+export interface SmartMoneyConcepts {
+  orderBlocks: OrderBlock[];
+  fairValueGaps: FairValueGap[];
+}
+
 export interface PricePattern {
   name: string;
   type: 'BULLISH' | 'BEARISH' | 'NEUTRAL';
@@ -96,6 +123,8 @@ export interface TechnicalSignals {
   fibonacciLevels?: FibonacciLevels;
   ichimoku?: IchimokuCloud; // New
   sar?: ParabolicSAR; // New
+  smartMoney?: SmartMoneyConcepts; // New: SMC Analysis
+  harmonicPatterns?: HarmonicPattern[]; // New: Harmonics
   pricePatterns?: PricePattern[];
   confidenceScore?: {
     score: number;

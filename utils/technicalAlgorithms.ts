@@ -1,4 +1,4 @@
-import { PivotPoints, IchimokuCloud, ParabolicSAR, PivotLevelSet, FibonacciLevels } from '../types';
+import { PivotPoints, IchimokuCloud, ParabolicSAR, PivotLevelSet, FibonacciLevels, OrderBlock, FairValueGap, HarmonicPattern } from '../types';
 
 /**
  * Calculates Simple Moving Average (SMA)
@@ -114,11 +114,9 @@ export const calculateIchimoku = (highs: number[], lows: number[], closes: numbe
   if (currentClose > spanA && currentClose > spanB) signal = 'BULLISH';
   else if (currentClose < spanA && currentClose < spanB) signal = 'BEARISH';
 
-  // Crossover check (only if no clear cloud signal yet)
-  if (signal === 'NEUTRAL') {
-    if (tenkan > kijun && currentClose > spanB) signal = 'BULLISH';
-    else if (tenkan < kijun && currentClose < spanB) signal = 'BEARISH';
-  }
+  // Crossover check
+  if (tenkan > kijun && currentClose > spanB) signal = 'BULLISH';
+  if (tenkan < kijun && currentClose < spanB) signal = 'BEARISH';
 
   return {
     tenkan: Number(tenkan.toFixed(2)),
@@ -274,4 +272,130 @@ export const calculateFibonacciLevels = (high: number, low: number, open: number
         ),
         trend
     } as FibonacciLevels;
+};
+
+// --- SMART MONEY CONCEPTS (SMC) & PATTERNS ---
+
+/**
+ * Detects Order Blocks (Simplified)
+ * Definition: The last opposing candle before a strong move that breaks structure/momentum.
+ */
+export const detectOrderBlocks = (
+    opens: number[],
+    highs: number[],
+    lows: number[],
+    closes: number[]
+): OrderBlock[] => {
+    const blocks: OrderBlock[] = [];
+    if (closes.length < 5) return blocks;
+
+    // Look back last 20 periods
+    for (let i = closes.length - 2; i > Math.max(0, closes.length - 20); i--) {
+        const currentBody = Math.abs(closes[i] - opens[i]);
+        const nextBody = Math.abs(closes[i+1] - opens[i+1]);
+        const moveSize = Math.abs(closes[i+1] - closes[i]);
+
+        // Bullish OB: Last bearish candle before a strong move up
+        if (closes[i] < opens[i] && closes[i+1] > opens[i+1] && nextBody > currentBody * 2) {
+             blocks.push({
+                 type: 'BULLISH',
+                 top: highs[i],
+                 bottom: lows[i],
+                 significance: 'HIGH'
+             });
+        }
+        // Bearish OB: Last bullish candle before a strong move down
+        else if (closes[i] > opens[i] && closes[i+1] < opens[i+1] && nextBody > currentBody * 2) {
+             blocks.push({
+                 type: 'BEARISH',
+                 top: highs[i],
+                 bottom: lows[i],
+                 significance: 'HIGH'
+             });
+        }
+    }
+    // Return top 2 recent blocks
+    return blocks.slice(0, 2);
+};
+
+/**
+ * Detects Fair Value Gaps (FVG) / Imbalances
+ * Definition: Gap between Candle[i-1] High/Low and Candle[i+1] Low/High.
+ */
+export const detectFairValueGaps = (highs: number[], lows: number[]): FairValueGap[] => {
+    const gaps: FairValueGap[] = [];
+    if (highs.length < 3) return gaps;
+
+    // Check last 10 candles
+    for (let i = highs.length - 2; i > Math.max(1, highs.length - 10); i--) {
+        const prevHigh = highs[i-1];
+        const prevLow = lows[i-1];
+        const nextHigh = highs[i+1];
+        const nextLow = lows[i+1];
+
+        // Bullish FVG: Current candle is big Green. Prev High < Next Low
+        if (lows[i+1] > highs[i-1]) {
+            gaps.push({
+                type: 'BULLISH',
+                top: lows[i+1],
+                bottom: highs[i-1],
+                isFilled: false
+            });
+        }
+        // Bearish FVG: Current candle is big Red. Prev Low > Next High
+        else if (highs[i+1] < lows[i-1]) {
+             gaps.push({
+                 type: 'BEARISH',
+                 top: lows[i-1],
+                 bottom: highs[i+1],
+                 isFilled: false
+             });
+        }
+    }
+    return gaps;
+};
+
+/**
+ * Detects Basic Harmonic Patterns (Gartley/Bat)
+ * Very simplified XABCD logic based on ZigZag points would be ideal,
+ * but here we check for simple geometric ratios on recent swing points.
+ */
+export const detectHarmonicPatterns = (highs: number[], lows: number[]): HarmonicPattern[] => {
+    // This is a placeholder for complex harmonic logic.
+    // In a real system, we'd need a ZigZag indicator first.
+    return [];
+};
+
+/**
+ * Calculates Dynamic Weights for Trend Confidence Score
+ * Logic: If market is Trending (High ADX), prioritize Trend Following (MA, MACD).
+ * If market is Ranging (Low ADX), prioritize Oscillators (RSI, Stoch).
+ */
+export const calculateDynamicWeights = (adx: number) => {
+    const isTrending = adx > 25;
+
+    // Base weights
+    const weights = {
+        RSI: 10,
+        STOCHASTIC: 10,
+        MACD: 10,
+        MA: 10,
+        SMC: 15, // Smart Money Concepts
+        ICHIMOKU: 10
+    };
+
+    if (isTrending) {
+        weights.MA = 20;
+        weights.MACD = 15;
+        weights.ICHIMOKU = 15;
+        weights.RSI = 5; // Oscillators fail in strong trends
+        weights.STOCHASTIC = 5;
+    } else {
+        // Ranging
+        weights.RSI = 20;
+        weights.STOCHASTIC = 20;
+        weights.MA = 5; // MAs get choppy in range
+        weights.MACD = 5;
+    }
+    return weights;
 };

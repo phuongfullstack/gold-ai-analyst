@@ -8,7 +8,10 @@ import {
   calculateStochastic,
   calculateIchimoku,
   calculateParabolicSAR,
-  calculateFibonacciLevels
+  calculateFibonacciLevels,
+  detectOrderBlocks,
+  detectFairValueGaps,
+  detectHarmonicPatterns
 } from "../utils/technicalAlgorithms";
 import {
   calculateTrendConfidence,
@@ -30,7 +33,10 @@ Nhiệm vụ: Phân tích thị trường Vàng (XAU/USD) và Vàng SJC dựa tr
 Nguyên tắc:
 1. Dữ liệu giá (XAU, USD/VND, SJC) phải CHÍNH XÁC TUYỆT ĐỐI từ nguồn uy tín.
 2. Không tự ý bịa đặt số liệu. Nếu không tìm thấy, hãy dùng dữ liệu gần nhất.
-3. Phân tích kỹ thuật phải tương đồng với các chỉ báo trên TradingView. Sử dụng các khái niệm chuyên sâu như Fibonacci, Order Block, Market Psychology, Smart Money.
+3. Phân tích kỹ thuật chuyên sâu:
+   - Sử dụng Fibonacci, Ichimoku, Bollinger Bands.
+   - Đặc biệt chú ý: Smart Money Concepts (SMC) như Order Blocks (Khối lệnh), Fair Value Gaps (Khoảng trống giá - FVG), Liquidity Sweeps (Quét thanh khoản).
+   - Mô hình giá Harmonic (Gartley, Bat, Butterfly) nếu có.
 4. Phong cách báo cáo: Sắc bén, chuyên nghiệp, tập trung vào hành động (Actionable).
 5. Luôn xây dựng kịch bản phản ứng (Scenario Planning) thay vì chỉ dự đoán một chiều.
 6. Cấu trúc báo cáo bắt buộc (trong phần fullReport):
@@ -50,21 +56,10 @@ const fetchFallbackData = async (): Promise<{ marketData: MarketData; report: An
     try {
        // Try to fetch real data with a 15s timeout
        // Now using Promise.race with a longer timeout because fetchAllMarketData handles its own sub-timeouts
-       let timeoutId: ReturnType<typeof setTimeout> | null = null;
-       const timeoutPromise = new Promise<MarketData>((_, reject) => {
-         timeoutId = setTimeout(() => reject(new Error("Timeout")), 5000);
-       });
-
-       try {
-         marketData = await Promise.race([
-           fetchAllMarketData(),
-           timeoutPromise
-         ]);
-       } finally {
-         if (timeoutId !== null) {
-           clearTimeout(timeoutId);
-         }
-       }
+       marketData = await Promise.race([
+          fetchAllMarketData(),
+          new Promise<MarketData>((_, reject) => setTimeout(() => reject(new Error("Global Timeout")), 15000))
+       ]);
     } catch (e) {
        console.warn("Real data fetch failed/timed out in fallback, using mock", e);
        marketData = {
@@ -109,6 +104,7 @@ const fetchFallbackData = async (): Promise<{ marketData: MarketData; report: An
     }
 
     // Extract arrays for algo
+    const opens = mockChartData.map(d => d.open || d.xau);
     const highs = mockChartData.map(d => d.high || d.xau);
     const lows = mockChartData.map(d => d.low || d.xau);
     const closes = mockChartData.map(d => d.close || d.xau);
@@ -122,6 +118,11 @@ const fetchFallbackData = async (): Promise<{ marketData: MarketData; report: An
     // Last OHLC for Pivots
     const lastOHLC = mockChartData[mockChartData.length - 1];
     const pivots = calculatePivotPointsExtended(lastOHLC.high || lastOHLC.xau, lastOHLC.low || lastOHLC.xau, lastOHLC.close || lastOHLC.xau, lastOHLC.open || lastOHLC.xau);
+
+    // Calculate Advanced Signals (SMC & Harmonics)
+    const orderBlocks = detectOrderBlocks(opens, highs, lows, closes);
+    const fairValueGaps = detectFairValueGaps(highs, lows);
+    const harmonicPatterns = detectHarmonicPatterns(highs, lows);
 
     const report: AnalysisReport = {
       technicalSummary: "Chế độ dữ liệu thời gian thực (Toán học). Dữ liệu kỹ thuật đang sử dụng các mốc mặc định do thiếu kết nối phân tích.",
@@ -148,7 +149,12 @@ const fetchFallbackData = async (): Promise<{ marketData: MarketData; report: An
         ma200: "ABOVE",
         pivotPoints: pivots,
         ichimoku,
-        sar
+        sar,
+        smartMoney: {
+          orderBlocks,
+          fairValueGaps
+        },
+        harmonicPatterns
       },
       fullReport: "Hệ thống đang chạy ở chế độ Phân tích Toán học do thiếu API Key. Các chỉ báo kỹ thuật được đặt ở mức trung tính. Giá vàng và tỷ giá vẫn được cập nhật realtime từ các nguồn public uy tín.",
       news: [],
@@ -217,7 +223,7 @@ export const fetchMarketAnalysis = async (): Promise<{ marketData: MarketData; r
         + RSI (14), Stochastic Oscillator (14, 3, 3), CCI (20), ADX (14).
         + Giá so với MA50 và MA200.
         + Bollinger Bands, MACD Level & Signal.
-      - Nhận diện các mẫu hình giá (Price Patterns) hiện tại: ví dụ Double Top, Double Bottom, Head and Shoulders, Triangle, Flag, Pennant, v.v.
+      - Nhận diện các mẫu hình giá (Price Patterns) và SMC (Order Blocks, FVG): ví dụ Double Top, Head and Shoulders, Bearish Order Block tại kháng cự.
 
       BƯỚC 3: LẤY TIN TỨC KINH TẾ XÃ HỘI (MACRO) & CHÍNH TRỊ
       - Tìm kiếm "Gold market news today geopolitical news impact on gold" hoặc "Financial news breaking today".
@@ -234,7 +240,7 @@ export const fetchMarketAnalysis = async (): Promise<{ marketData: MarketData; r
       - KHÔNG CẦN TÍNH TOÁN "Spread" hay "Giá quy đổi", hệ thống sẽ tự tính.
 
       YÊU CẦU ĐẦU RA (JSON):
-      Trong phần 'shortTermTrend', hãy phân tích cực kỳ chi tiết các mốc giá trong 1-3 ngày tới dựa trên nến 1H/4H.
+      Trong phần 'shortTermTrend', hãy phân tích cực kỳ chi tiết các mốc giá trong 1-3 ngày tới dựa trên nến 1H/4H, chú ý Order Blocks và FVG.
       Trong phần 'longTermTrend', hãy phân tích xu hướng tuần/tháng dựa trên nến Daily/Weekly và chu kỳ kinh tế của FED.
       Trong phần 'fullReport', hãy viết một bài phân tích chuyên sâu tổng hợp mọi yếu tố theo ĐÚNG CẤU TRÚC 4 PHẦN và BOTTOM LINE đã nêu trong hướng dẫn hệ thống. Sử dụng ngôn ngữ chuyên nghiệp của một Senior Trader.
     `;
@@ -430,6 +436,7 @@ export const fetchMarketAnalysis = async (): Promise<{ marketData: MarketData; r
         // Sort by time ascending
         const sortedData = [...result.report.chartData].sort((a, b) => parseInt(a.time) - parseInt(b.time));
 
+        const opens = sortedData.map(d => d.open || d.xau);
         const highs = sortedData.map(d => d.high || d.xau);
         const lows = sortedData.map(d => d.low || d.xau);
         const closes = sortedData.map(d => d.close || d.xau);
@@ -447,9 +454,17 @@ export const fetchMarketAnalysis = async (): Promise<{ marketData: MarketData; r
 
         const sar = calculateParabolicSAR(highs, lows, closes);
         result.report.technicalSignals.sar = sar;
+
+        // Calculate Advanced Signals (SMC & Harmonics)
+        result.report.technicalSignals.smartMoney = {
+          orderBlocks: detectOrderBlocks(opens, highs, lows, closes),
+          fairValueGaps: detectFairValueGaps(highs, lows)
+        };
+        result.report.technicalSignals.harmonicPatterns = detectHarmonicPatterns(highs, lows);
     }
 
     // 3. Calculate Trend Confidence Score
+    // Now includes SMC and new indicators in the confidence calculation
     const confidence = calculateTrendConfidence(result.report.technicalSignals);
     result.report.technicalSignals.confidenceScore = confidence;
 
