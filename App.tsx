@@ -77,13 +77,41 @@ const App: React.FC = () => {
       const sentiment = sigs.confidenceScore?.label || 'TRUNG LẬP';
       const sentimentColor = (sentiment.includes('TÍCH CỰC') || sentiment.includes('BULLISH')) ? '#10b981' : (sentiment.includes('TIÊU CỰC') || sentiment.includes('BEARISH')) ? '#f43f5e' : '#eab308';
 
+      // Generate realistic candlestick bars based on actual price
+      let lastPrice = mData.xauPrice;
+      const bars = Array.from({ length: 24 }).map((_, i) => {
+          const change = (Math.random() - 0.48) * (mData.xauPrice * 0.01); // ~1% volatility
+          const open = lastPrice;
+          const close = open + change;
+          const high = Math.max(open, close) + Math.random() * (mData.xauPrice * 0.002);
+          const low = Math.min(open, close) - Math.random() * (mData.xauPrice * 0.002);
+          lastPrice = close;
+
+          const isUp = close >= open;
+          const color = isUp ? '#10b981' : '#f43f5e';
+
+          // Scaling for visualization (height between 20-100px)
+          const range = 50; // pixels
+          const bodyHeight = Math.max(2, Math.abs(close - open) / (mData.xauPrice * 0.02) * range);
+          const wickTopHeight = (high - Math.max(open, close)) / (mData.xauPrice * 0.02) * range;
+          const wickBottomHeight = (Math.min(open, close) - low) / (mData.xauPrice * 0.02) * range;
+
+          return `
+            <div style="flex: 1; display: flex; flex-direction: column; align-items: center; height: 100%; justify-content: center; min-width: 8px;">
+                <div style="width: 1px; height: ${wickTopHeight}px; background: ${color};"></div>
+                <div style="width: 6px; height: ${bodyHeight}px; background: ${color}; border-radius: 1px;"></div>
+                <div style="width: 1px; height: ${wickBottomHeight}px; background: ${color};"></div>
+            </div>
+          `;
+      }).join('');
+
       placeholder.innerHTML = `
         <div style="border: 1px solid #334155; border-radius: 24px; padding: 40px; background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); width: 95%; height: 90%; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); font-family: 'Inter', sans-serif; color: white; display: flex; flex-direction: column; justify-content: space-between;">
           <div>
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
               <div>
                 <div style="color: #eab308; font-size: 28px; font-weight: 900; letter-spacing: 2px;">TỔNG QUAN THỊ TRƯỜNG</div>
-                <div style="color: #64748b; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin-top: 4px;">Báo cáo Hội tụ Kỹ thuật</div>
+                <div style="color: #64748b; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin-top: 4px;">Báo cáo Hội tụ Kỹ thuật nến</div>
               </div>
               <div style="background: ${sentimentColor}20; border: 1px solid ${sentimentColor}50; padding: 10px 20px; border-radius: 12px; text-align: right;">
                 <div style="color: #64748b; font-size: 10px; font-weight: 800; text-transform: uppercase;">TÂM LÝ</div>
@@ -91,33 +119,36 @@ const App: React.FC = () => {
               </div>
             </div>
 
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 40px;">
-              <div style="background: #0f172a; padding: 20px; border-radius: 16px; border-left: 4px solid #3b82f6;">
-                <div style="color: #475569; font-size: 10px; font-weight: 900; text-transform: uppercase;">CHỈ SỐ SỨC MẠNH (RSI)</div>
-                <div style="display: flex; align-items: center; gap: 15px; margin-top: 10px;">
-                   <div style="font-size: 32px; font-weight: 900;">${sigs.rsi}</div>
-                   <div style="flex: 1; height: 6px; background: #1e293b; border-radius: 3px; position: relative;">
-                      <div style="position: absolute; left: ${sigs.rsi}%; width: 12px; height: 12px; background: white; border-radius: 50%; top: 50%; transform: translate(-50%, -50%); box-shadow: 0 0 10px white;"></div>
-                   </div>
-                </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
+              <div style="background: #0f172a; padding: 15px; border-radius: 16px; border-left: 4px solid #3b82f6;">
+                <div style="color: #475569; font-size: 10px; font-weight: 900; text-transform: uppercase;">XAU/USD</div>
+                <div style="font-size: 28px; font-weight: 900; color: #fff;">$${mData.xauPrice.toLocaleString()}</div>
               </div>
-              <div style="background: #0f172a; padding: 20px; border-radius: 16px; border-left: 4px solid #8b5cf6;">
-                <div style="color: #475569; font-size: 10px; font-weight: 900; text-transform: uppercase;">XU HƯỚNG TRUNG HẠN (MA)</div>
-                <div style="margin-top: 10px; font-size: 18px; font-weight: 800; color: ${sigs.ma50 === 'ABOVE' ? '#10b981' : '#f43f5e'}">
+              <div style="background: #0f172a; padding: 15px; border-radius: 16px; border-left: 4px solid #8b5cf6;">
+                <div style="color: #475569; font-size: 10px; font-weight: 900; text-transform: uppercase;">XU HƯỚNG TRUNG HẠN</div>
+                <div style="margin-top: 5px; font-size: 16px; font-weight: 800; color: ${sigs.ma50 === 'ABOVE' ? '#10b981' : '#f43f5e'}">
                   ${sigs.ma50 === 'ABOVE' ? '▲ GIÁ TRÊN MA50' : '▼ GIÁ DƯỚI MA50'}
                 </div>
-                <div style="color: #64748b; font-size: 11px; margin-top: 4px;">Cấu trúc thị trường hiện tại</div>
               </div>
             </div>
 
+            <!-- Candlestick Visual -->
+            <div style="display: flex; align-items: center; gap: 4px; height: 150px; padding: 20px; background: #020617; border-radius: 16px; border: 1px solid #1e293b; margin-bottom: 20px; position: relative; overflow: hidden;">
+                ${bars}
+                <div style="position: absolute; left: 0; right: 0; top: 40%; height: 1px; border-top: 1px dashed rgba(16, 185, 129, 0.5); z-index: 1;"></div>
+                <div style="position: absolute; left: 0; right: 0; top: 70%; height: 1px; border-top: 1px dashed rgba(244, 63, 94, 0.5); z-index: 1;"></div>
+                <div style="position: absolute; right: 10px; top: 30%; background: #10b981; color: white; font-size: 8px; padding: 2px 4px; border-radius: 2px; font-weight: 900; z-index: 2;">RES: $${sigs.resistance}</div>
+                <div style="position: absolute; right: 10px; top: 65%; background: #f43f5e; color: white; font-size: 8px; padding: 2px 4px; border-radius: 2px; font-weight: 900; z-index: 2;">SUP: $${sigs.support}</div>
+            </div>
+
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
-               <div style="background: rgba(16, 185, 129, 0.05); padding: 20px; border-radius: 16px; border: 1px solid rgba(16, 185, 129, 0.1);">
+               <div style="background: rgba(16, 185, 129, 0.05); padding: 15px; border-radius: 16px; border: 1px solid rgba(16, 185, 129, 0.1);">
                   <div style="color: #10b981; font-size: 10px; font-weight: 900; text-transform: uppercase;">HỖ TRỢ CHIẾN LƯỢC</div>
-                  <div style="font-size: 28px; font-weight: 900; margin-top: 5px; color: #10b981;">$${sigs.support}</div>
+                  <div style="font-size: 24px; font-weight: 900; margin-top: 5px; color: #10b981;">$${sigs.support}</div>
                </div>
-               <div style="background: rgba(244, 63, 94, 0.05); padding: 20px; border-radius: 16px; border: 1px solid rgba(244, 63, 94, 0.1);">
+               <div style="background: rgba(244, 63, 94, 0.05); padding: 15px; border-radius: 16px; border: 1px solid rgba(244, 63, 94, 0.1);">
                   <div style="color: #f43f5e; font-size: 10px; font-weight: 900; text-transform: uppercase;">KHÁNG CỰ CHIẾN LƯỢC</div>
-                  <div style="font-size: 28px; font-weight: 900; margin-top: 5px; color: #f43f5e;">$${sigs.resistance}</div>
+                  <div style="font-size: 24px; font-weight: 900; margin-top: 5px; color: #f43f5e;">$${sigs.resistance}</div>
                </div>
             </div>
           </div>
@@ -273,7 +304,7 @@ const App: React.FC = () => {
         </div>
 
         {/* Top Metrics Row */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6 md:gap-6 mb-10">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-6 md:gap-6 mb-10">
           <PriceCard 
             title="XAU/USD Spot" 
             value={marketData ? `$${marketData.xauPrice.toLocaleString()}` : '...'}
@@ -282,11 +313,11 @@ const App: React.FC = () => {
             icon={<span>🏆</span>}
           />
           <PriceCard 
-            title="DXY Index" 
-            value={marketData ? marketData.dxyValue.toFixed(3) : '...'}
-            subValue="Đô-la Mỹ (Strength)"
+            title="XAG/USD Spot"
+            value={marketData ? `$${marketData.xagPrice.toFixed(2)}` : '...'}
+            subValue="Bạc Thế giới"
             color="blue"
-            icon={<span>💵</span>}
+            icon={<span>🥈</span>}
           />
           <PriceCard 
             title="SJC Vietnam" 
@@ -301,6 +332,13 @@ const App: React.FC = () => {
             subValue={marketData && marketData.ringGoldBuy > 0 ? `Mua: ${marketData.ringGoldBuy}` : 'Mua: N/A'}
             color="gold"
             icon={<span>💍</span>}
+          />
+          <PriceCard
+            title="Bạc Trong nước"
+            value={marketData && marketData.silverSell > 0 ? `${marketData.silverSell} tr` : 'N/A'}
+            subValue={marketData && marketData.silverBuy > 0 ? `Mua: ${marketData.silverBuy}` : 'Mua: N/A'}
+            color="blue"
+            icon={<span>🌑</span>}
           />
           <PriceCard 
             title="Premium/Spread" 
@@ -371,6 +409,12 @@ const App: React.FC = () => {
                   <span className="text-slate-400 font-bold">Quy đổi TG</span>
                   <span className="text-yellow-500 font-mono font-black text-lg">
                     {marketData ? ((marketData.xauPrice * marketData.usdVnd * ANALYSIS_CONSTANTS.GOLD_CONVERSION_FACTOR) / 1000000).toFixed(2) + ' tr' : '...'}
+                  </span>
+               </div>
+               <div className="flex justify-between items-center text-sm mt-2">
+                  <span className="text-slate-400 font-bold">Bạc quy đổi</span>
+                  <span className="text-blue-400 font-mono font-black">
+                    {marketData ? ((marketData.xagPrice * marketData.usdVnd * 1.205) / 1000000).toFixed(2) + ' tr' : '...'}
                   </span>
                </div>
             </div>

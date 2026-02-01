@@ -8,11 +8,12 @@ interface SettingsModalProps {
 
 const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, onSave }) => {
   const [apiKey, setApiKey] = useState('');
+  const [vnAppMobKey, setVnAppMobKey] = useState('');
 
   useEffect(() => {
     if (isOpen) {
-      const storedKey = localStorage.getItem('GEMINI_API_KEY') || '';
-      setApiKey(storedKey);
+      setApiKey(localStorage.getItem('GEMINI_API_KEY') || '');
+      setVnAppMobKey(localStorage.getItem('VNAPPMOB_API_KEY') || '');
     }
   }, [isOpen]);
 
@@ -22,6 +23,13 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, onSave }
     } else {
       localStorage.removeItem('GEMINI_API_KEY');
     }
+
+    if (vnAppMobKey.trim()) {
+        localStorage.setItem('VNAPPMOB_API_KEY', vnAppMobKey.trim());
+    } else {
+        localStorage.removeItem('VNAPPMOB_API_KEY');
+    }
+
     if (onSave) onSave();
     onClose();
   };
@@ -57,7 +65,23 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, onSave }
               className="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-3 text-white placeholder-slate-600 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all font-mono text-sm"
             />
             <p className="mt-2 text-xs text-slate-500">
-              API Key sẽ được lưu trữ an toàn trên trình duyệt của bạn (LocalStorage) và không bao giờ được gửi đi đâu khác ngoài Google Servers.
+              API Key sẽ được lưu trữ an toàn trên trình duyệt của bạn (LocalStorage).
+            </p>
+          </div>
+
+          <div>
+            <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">
+              VNAppMob API Key (Optional)
+            </label>
+            <input
+              type="password"
+              value={vnAppMobKey}
+              onChange={(e) => setVnAppMobKey(e.target.value)}
+              placeholder="Nhập VNAppMob API Key..."
+              className="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-3 text-white placeholder-slate-600 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all font-mono text-sm"
+            />
+            <p className="mt-2 text-xs text-slate-500">
+              Dùng để lấy giá vàng SJC realtime từ VNAppMob API.
             </p>
           </div>
         </div>
