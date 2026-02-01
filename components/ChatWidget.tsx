@@ -6,7 +6,7 @@ import { GenerateContentResponse } from '@google/genai';
 const ChatWidget: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([
-    { id: '1', role: 'model', text: 'Xin chào! Tôi là Trợ lý AI Phân tích Vàng. Bạn muốn hỏi về xu hướng XAU/USD, DXY hay giá vàng SJC?', timestamp: new Date() }
+    { id: '1', role: 'model', text: 'Xin chào! Tôi là Trợ lý Phân tích Vàng. Bạn muốn hỏi về xu hướng XAU/USD, DXY hay giá vàng SJC?', timestamp: new Date() }
   ]);
   const [input, setInput] = useState('');
   const [isTyping, setIsTyping] = useState(false);

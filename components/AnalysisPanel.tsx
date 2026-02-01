@@ -12,7 +12,7 @@ const AnalysisPanel: React.FC<AnalysisPanelProps> = ({ report, isLoading, onRefr
     <div className="bg-slate-800/50 rounded-2xl border border-slate-700/50 overflow-hidden flex flex-col h-full shadow-2xl">
       <div className="p-4 md:p-6 border-b border-slate-700/50 flex flex-wrap justify-between items-center bg-slate-800/80 gap-3">
         <h2 className="text-lg md:text-xl font-bold text-white flex items-center gap-3">
-          <span className="text-2xl">🤖</span> AI Analyst
+          <span className="text-2xl">🤖</span> Hệ thống Phân tích
         </h2>
         <button 
           onClick={onRefresh}
