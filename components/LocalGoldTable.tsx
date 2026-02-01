@@ -1,11 +1,13 @@
 import React from 'react';
 import { MarketData } from '../types';
+import LoadingIcon from './LoadingIcon';
 
 interface LocalGoldTableProps {
   data: MarketData;
+  isLoading?: boolean;
 }
 
-const LocalGoldTable: React.FC<LocalGoldTableProps> = ({ data }) => {
+const LocalGoldTable: React.FC<LocalGoldTableProps> = ({ data, isLoading }) => {
   const brands = [
     { name: 'SJC Toàn Quốc', buy: data.sjcBuy, sell: data.sjcSell },
     { name: 'PNJ (Vàng 24K)', buy: data.pnjBuy, sell: data.pnjSell },
@@ -16,6 +18,7 @@ const LocalGoldTable: React.FC<LocalGoldTableProps> = ({ data }) => {
   ];
 
   const formatPrice = (price: number) => {
+    if (isLoading && price === 0) return <LoadingIcon size={14} className="inline opacity-50" />;
     return price > 0 ? `${price.toFixed(2)} tr` : 'N/A';
   };
 

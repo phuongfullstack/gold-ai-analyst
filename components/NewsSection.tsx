@@ -1,12 +1,14 @@
 import React from 'react';
 import { MarketNews } from '../types';
 import { UI_LABELS } from '../utils/constants';
+import LoadingIcon from './LoadingIcon';
 
 interface NewsSectionProps {
   news: MarketNews[];
+  isLoading?: boolean;
 }
 
-const NewsSection: React.FC<NewsSectionProps> = ({ news }) => {
+const NewsSection: React.FC<NewsSectionProps> = ({ news, isLoading }) => {
   const getCategoryColor = (category: string) => {
     switch (category) {
       case 'GEOPOLITICAL': return 'bg-rose-500/20 text-rose-400 border-rose-500/30';
@@ -63,12 +65,18 @@ const NewsSection: React.FC<NewsSectionProps> = ({ news }) => {
           ))
         ) : (
           <div className="col-span-full py-20 bg-slate-900/30 rounded-3xl border-2 border-dashed border-slate-800 flex flex-col items-center justify-center text-slate-600">
-             <svg className="w-12 h-12 mb-4 opacity-20" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10l4 4v10a2 2 0 01-2 2z" />
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 2v4a2 2 0 002 2h4" />
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 13H8M16 17H8M10 9H8" />
-             </svg>
-             <p className="font-bold uppercase tracking-widest text-xs">Đang tổng hợp tin tức thị trường...</p>
+             {isLoading ? (
+                <LoadingIcon size={40} className="mb-4 text-blue-500 opacity-50" />
+             ) : (
+                <svg className="w-12 h-12 mb-4 opacity-20" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10l4 4v10a2 2 0 01-2 2z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 2v4a2 2 0 002 2h4" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 13H8M16 17H8M10 9H8" />
+                </svg>
+             )}
+             <p className="font-bold uppercase tracking-widest text-xs">
+                {isLoading ? 'Đang phân tích tin tức từ hệ thống...' : 'Không có tin tức nào khả dụng.'}
+             </p>
           </div>
         )}
       </div>

@@ -437,6 +437,7 @@ const App: React.FC = () => {
             subValue="Thế giới (Global)"
             color="gold"
             icon={<span>🏆</span>}
+            isLoading={loading}
           />
           <PriceCard 
             title="XAG/USD Spot"
@@ -444,6 +445,7 @@ const App: React.FC = () => {
             subValue="Bạc Thế giới"
             color="blue"
             icon={<span>🥈</span>}
+            isLoading={loading}
           />
           <PriceCard 
             title="SJC Vietnam" 
@@ -451,6 +453,7 @@ const App: React.FC = () => {
             subValue={marketData.sjcBuy > 0 ? `Mua: ${marketData.sjcBuy}` : 'Mua: ...'}
             color="red"
             icon={<span>🇻🇳</span>}
+            isLoading={loading}
           />
           <PriceCard
             title="Vàng Nhẫn 9999"
@@ -458,6 +461,7 @@ const App: React.FC = () => {
             subValue={marketData.ringGoldBuy > 0 ? `Mua: ${marketData.ringGoldBuy}` : 'Mua: ...'}
             color="gold"
             icon={<span>💍</span>}
+            isLoading={loading}
           />
           <PriceCard
             title="Bạc Trong nước"
@@ -465,6 +469,7 @@ const App: React.FC = () => {
             subValue={marketData.silverBuy > 0 ? `Mua: ${marketData.silverBuy}` : 'Mua: ...'}
             color="blue"
             icon={<span>🌑</span>}
+            isLoading={loading}
           />
           <PriceCard 
             title="Premium/Spread" 
@@ -472,6 +477,7 @@ const App: React.FC = () => {
             subValue={marketData.sjcSell > 0 ? (marketData.spread > 5 ? "⚠️ Rủi ro cao" : "✅ Ổn định") : "Đang tính toán..."}
             color={marketData.sjcSell > 0 && marketData.spread > 5 ? "red" : "green"}
             icon={<span>📊</span>}
+            isLoading={loading}
           />
         </div>
 
@@ -480,7 +486,7 @@ const App: React.FC = () => {
 
         {/* Vietnamese Gold Prices Comparison */}
         <div className="mb-10">
-           {marketData && <LocalGoldTable data={marketData} />}
+           <LocalGoldTable data={marketData} isLoading={loading} />
         </div>
 
         {/* Main Content Grid */}
@@ -520,7 +526,7 @@ const App: React.FC = () => {
 
         {/* News Section */}
         <div className="mb-16">
-           {report && <NewsSection news={report.news} />}
+           <NewsSection news={report?.news || []} isLoading={loading} />
         </div>
 
         {/* Secondary Info Row */}

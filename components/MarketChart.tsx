@@ -38,7 +38,9 @@ const MarketChart: React.FC<MarketChartProps> = ({ supportLevel, resistanceLevel
           container_id: containerId,
           studies: [
             "RSI@tv-basicstudies", // RSI
-            "BB@tv-basicstudies"   // Bollinger Bands
+            "BB@tv-basicstudies",  // Bollinger Bands
+            "MACD@tv-basicstudies",
+            "Stochastic@tv-basicstudies"
           ],
           withdateranges: true,
           hide_volume: true

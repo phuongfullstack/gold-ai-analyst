@@ -21,6 +21,13 @@ export interface FibonacciLevels {
   trend: 'UP' | 'DOWN';
 }
 
+export interface PricePattern {
+  name: string;
+  type: 'BULLISH' | 'BEARISH' | 'NEUTRAL';
+  reliability: 'HIGH' | 'MEDIUM' | 'LOW';
+  description: string;
+}
+
 export interface MarketNews {
   title: string;
   source: string;
@@ -65,6 +72,7 @@ export interface TechnicalSignals {
   ma200: 'ABOVE' | 'BELOW'; // New: Price vs SMA200
   pivotPoints?: PivotPoints; // Calculated Algorithmic Support
   fibonacciLevels?: FibonacciLevels;
+  pricePatterns?: PricePattern[];
   confidenceScore?: {
     score: number;
     label: string;
