@@ -5,12 +5,34 @@ export interface OHLC {
   close: number;
 }
 
-export interface PivotPoints {
+export interface PivotLevelSet {
   pivot: number;
   r1: number;
   r2: number;
+  r3: number;
   s1: number;
   s2: number;
+  s3: number;
+}
+
+export interface PivotPoints {
+  classic: PivotLevelSet;
+  woodie: PivotLevelSet;
+  camarilla: PivotLevelSet;
+  fibonacci: PivotLevelSet;
+}
+
+export interface IchimokuCloud {
+  tenkan: number;
+  kijun: number;
+  spanA: number;
+  spanB: number;
+  signal: 'BULLISH' | 'BEARISH' | 'NEUTRAL';
+}
+
+export interface ParabolicSAR {
+  value: number;
+  trend: 'UP' | 'DOWN';
 }
 
 export interface FibonacciLevels {
@@ -19,6 +41,33 @@ export interface FibonacciLevels {
   level500: number;
   level618: number;
   trend: 'UP' | 'DOWN';
+}
+
+export interface OrderBlock {
+  type: 'BULLISH' | 'BEARISH';
+  top: number;
+  bottom: number;
+  significance: 'HIGH' | 'MEDIUM' | 'LOW';
+}
+
+export interface FairValueGap {
+  type: 'BULLISH' | 'BEARISH';
+  top: number;
+  bottom: number;
+  isFilled: boolean;
+}
+
+export interface HarmonicPattern {
+  name: string; // Gartley, Bat, Butterfly...
+  type: 'BULLISH' | 'BEARISH';
+  completionPrice: number;
+  stopLoss: number;
+  takeProfit: number;
+}
+
+export interface SmartMoneyConcepts {
+  orderBlocks: OrderBlock[];
+  fairValueGaps: FairValueGap[];
 }
 
 export interface PricePattern {
@@ -60,18 +109,22 @@ export interface MarketData {
 
 export interface TechnicalSignals {
   rsi: number;
-  stochastic: number; // New: Stochastic %K
-  adx: number;        // New: Trend Strength
-  cci: number;        // New: Commodity Channel Index
+  stochastic: number; // Stochastic %K
+  adx: number;        // Trend Strength
+  cci: number;        // Commodity Channel Index
   trend: string;
   support: number;
   resistance: number;
   macd: string;
   bollinger: string;
-  ma50: 'ABOVE' | 'BELOW';  // New: Price vs SMA50
-  ma200: 'ABOVE' | 'BELOW'; // New: Price vs SMA200
-  pivotPoints?: PivotPoints; // Calculated Algorithmic Support
+  ma50: 'ABOVE' | 'BELOW';  // Price vs SMA50
+  ma200: 'ABOVE' | 'BELOW'; // Price vs SMA200
+  pivotPoints?: PivotPoints; // Expanded Pivot Points
   fibonacciLevels?: FibonacciLevels;
+  ichimoku?: IchimokuCloud; // New
+  sar?: ParabolicSAR; // New
+  smartMoney?: SmartMoneyConcepts; // New: SMC Analysis
+  harmonicPatterns?: HarmonicPattern[]; // New: Harmonics
   pricePatterns?: PricePattern[];
   confidenceScore?: {
     score: number;

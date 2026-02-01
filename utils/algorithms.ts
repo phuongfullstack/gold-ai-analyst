@@ -1,83 +1,6 @@
 import { TechnicalSignals } from '../types';
 import { ANALYSIS_CONSTANTS, UI_LABELS } from './constants';
-
-export interface PivotPoints {
-    pivot: number;
-    r1: number;
-    r2: number;
-    s1: number;
-    s2: number;
-}
-
-/**
- * Calculates Standard Pivot Points.
- * @param high Previous High
- * @param low Previous Low
- * @param close Previous Close
- */
-export const calculatePivotPoints = (high: number, low: number, close: number): PivotPoints => {
-    const pivot = (high + low + close) / 3;
-    const r1 = (2 * pivot) - low;
-    const s1 = (2 * pivot) - high;
-    const r2 = pivot + (high - low);
-    const s2 = pivot - (high - low);
-
-    return {
-        pivot: Number(pivot.toFixed(2)),
-        r1: Number(r1.toFixed(2)),
-        r2: Number(r2.toFixed(2)),
-        s1: Number(s1.toFixed(2)),
-        s2: Number(s2.toFixed(2))
-    };
-};
-
-/**
- * Calculates Fibonacci Retracement Levels for a generic trend.
- * Used to identify potential support (if uptrend) or resistance (if downtrend).
- */
-export const calculateFibonacciRetracement = (high: number, low: number, trend: 'UP' | 'DOWN') => {
-    const diff = high - low;
-    const FIB_LEVELS = {
-        L236: 0.236,
-        L382: 0.382,
-        L500: 0.5,
-        L618: 0.618
-    };
-
-    if (trend === 'UP') {
-        // Trend is UP, we measure Pullbacks. High is peak, Low is trough.
-        // Support levels are below the High.
-        return {
-            level236: high - (diff * FIB_LEVELS.L236),
-            level382: high - (diff * FIB_LEVELS.L382),
-            level500: high - (diff * FIB_LEVELS.L500),
-            level618: high - (diff * FIB_LEVELS.L618)
-        };
-    } else {
-        // Trend is DOWN. We measure bounces. Low is bottom, High is start.
-        // Resistance levels are above the Low.
-        return {
-            level236: low + (diff * FIB_LEVELS.L236),
-            level382: low + (diff * FIB_LEVELS.L382),
-            level500: low + (diff * FIB_LEVELS.L500),
-            level618: low + (diff * FIB_LEVELS.L618)
-        };
-    }
-};
-
-/**
- * Wrapper for Fibonacci levels calculation from OHLC.
- */
-export const calculateFibonacciLevels = (high: number, low: number, open: number, close: number) => {
-    const trend = close >= open ? 'UP' : 'DOWN';
-    const levels = calculateFibonacciRetracement(high, low, trend);
-    return {
-        ...Object.fromEntries(
-            Object.entries(levels).map(([k, v]) => [k, Number(v.toFixed(2))])
-        ),
-        trend
-    };
-};
+import { calculateDynamicWeights } from './technicalAlgorithms';
 
 /**
  * Calculates a "Confidence Score" (0-100) for the current trend.
@@ -85,50 +8,51 @@ export const calculateFibonacciLevels = (high: number, low: number, open: number
  */
 export const calculateTrendConfidence = (signals: TechnicalSignals): { score: number; label: string } => {
     let score = ANALYSIS_CONSTANTS.CONFIDENCE.NEUTRAL;
-    const { WEIGHTS } = ANALYSIS_CONSTANTS;
+
+    // Get weights dynamically based on Market Regime (Trending vs Ranging)
+    const WEIGHTS = calculateDynamicWeights(signals.adx);
 
     // RSI Analysis (Trend Confirmation)
     if (signals.rsi > ANALYSIS_CONSTANTS.RSI.NEUTRAL && signals.rsi < ANALYSIS_CONSTANTS.RSI.OVERBOUGHT) score += WEIGHTS.RSI;
     else if (signals.rsi < ANALYSIS_CONSTANTS.RSI.NEUTRAL && signals.rsi > ANALYSIS_CONSTANTS.RSI.OVERSOLD) score -= WEIGHTS.RSI;
-    else if (signals.rsi >= ANALYSIS_CONSTANTS.RSI.OVERBOUGHT) score -= WEIGHTS.BB; // Overbought (Risk)
-    else if (signals.rsi <= ANALYSIS_CONSTANTS.RSI.OVERSOLD) score += WEIGHTS.BB; // Oversold (Opportunity)
+    else if (signals.rsi >= ANALYSIS_CONSTANTS.RSI.OVERBOUGHT) score -= WEIGHTS.RSI / 2; // Overbought (Risk)
+    else if (signals.rsi <= ANALYSIS_CONSTANTS.RSI.OVERSOLD) score += WEIGHTS.RSI / 2; // Oversold (Opportunity)
 
     // Stochastic (Momentum)
     if (signals.stochastic > ANALYSIS_CONSTANTS.STOCHASTIC.OVERBOUGHT) score -= WEIGHTS.STOCHASTIC;
     else if (signals.stochastic < ANALYSIS_CONSTANTS.STOCHASTIC.OVERSOLD) score += WEIGHTS.STOCHASTIC;
 
-    // CCI (Commodity Channel Index)
-    if (signals.cci > ANALYSIS_CONSTANTS.CCI.OVERBOUGHT) score += WEIGHTS.CCI;
-    else if (signals.cci < ANALYSIS_CONSTANTS.CCI.OVERSOLD) score -= WEIGHTS.CCI;
-
     // Moving Averages
-    if (signals.ma50 === 'ABOVE') score += WEIGHTS.MA50;
-    else score -= WEIGHTS.MA50;
+    if (signals.ma50 === 'ABOVE') score += WEIGHTS.MA;
+    else score -= WEIGHTS.MA;
 
-    if (signals.ma200 === 'ABOVE') score += WEIGHTS.MA200;
-    else score -= WEIGHTS.MA200;
+    if (signals.ma200 === 'ABOVE') score += WEIGHTS.MA; // Simplified weight for MA
+    else score -= WEIGHTS.MA;
 
-    // ADX (Trend Strength)
-    if (signals.adx > ANALYSIS_CONSTANTS.ADX.STRONG_TREND) {
-        if (score > ANALYSIS_CONSTANTS.CONFIDENCE.NEUTRAL) score += WEIGHTS.ADX;
-        else if (score < ANALYSIS_CONSTANTS.CONFIDENCE.NEUTRAL) score -= WEIGHTS.ADX;
-    } else {
-        if (score > ANALYSIS_CONSTANTS.CONFIDENCE.NEUTRAL) score -= WEIGHTS.STOCHASTIC;
-        else if (score < ANALYSIS_CONSTANTS.CONFIDENCE.NEUTRAL) score += WEIGHTS.STOCHASTIC;
+    // Ichimoku Cloud
+    if (signals.ichimoku) {
+        if (signals.ichimoku.signal === 'BULLISH') score += WEIGHTS.ICHIMOKU;
+        else if (signals.ichimoku.signal === 'BEARISH') score -= WEIGHTS.ICHIMOKU;
+    }
+
+    // Smart Money Concepts
+    if (signals.smartMoney) {
+        // Bullish Order Blocks act as support (Positive Score)
+        const bullishBlocks = signals.smartMoney.orderBlocks.filter(b => b.type === 'BULLISH');
+        if (bullishBlocks.length > 0) score += WEIGHTS.SMC;
+
+        // Bearish Order Blocks act as resistance (Negative Score)
+        const bearishBlocks = signals.smartMoney.orderBlocks.filter(b => b.type === 'BEARISH');
+        if (bearishBlocks.length > 0) score -= WEIGHTS.SMC;
     }
 
     // MACD alignment
     const macdUpper = signals.macd ? signals.macd.toUpperCase() : "";
-    if (macdUpper.includes("BUY") || macdUpper.includes("BULLISH") || macdUpper.includes("POSITIVE") || macdUpper.includes("CROSSOVER") || macdUpper.includes("TÍCH CỰC") || macdUpper.includes("MUA")) {
+    if (macdUpper.includes("BUY") || macdUpper.includes("BULLISH") || macdUpper.includes("POSITIVE")) {
         score += WEIGHTS.MACD;
-    } else if (macdUpper.includes("SELL") || macdUpper.includes("BEARISH") || macdUpper.includes("NEGATIVE") || macdUpper.includes("TIÊU CỰC") || macdUpper.includes("BÁN")) {
+    } else if (macdUpper.includes("SELL") || macdUpper.includes("BEARISH") || macdUpper.includes("NEGATIVE")) {
         score -= WEIGHTS.MACD;
     }
-
-    // Bollinger Bands
-    const bbUpper = signals.bollinger ? signals.bollinger.toUpperCase() : "";
-    if (bbUpper.includes("UPPER") || bbUpper.includes("OVERBOUGHT") || bbUpper.includes("QUÁ MUA")) score -= WEIGHTS.BB;
-    else if (bbUpper.includes("LOWER") || bbUpper.includes("OVERSOLD") || bbUpper.includes("QUÁ BÁN")) score += WEIGHTS.BB;
 
     // Clamp score 0-100
     score = Math.max(0, Math.min(100, score));
@@ -172,11 +96,24 @@ export const generateMarketInsight = (signals: TechnicalSignals): string => {
         insight += "Áp lực bán duy trì mạnh trên các khung thời gian lớn. ";
     }
 
-    if (signals.rsi > 70) insight += "Chỉ số RSI cho thấy trạng thái quá mua, tiềm ẩn rủi ro điều chỉnh. ";
-    else if (signals.rsi < 30) insight += "RSI đi vào vùng quá bán, có khả năng xuất hiện nhịp hồi kỹ thuật. ";
+    if (signals.smartMoney) {
+        const bullishOB = signals.smartMoney.orderBlocks.filter(b => b.type === 'BULLISH');
+        if (bullishOB.length > 0) {
+            insight += `Dòng tiền thông minh (Smart Money) đang tích lũy tại vùng $${bullishOB[0].top.toFixed(0)}. `;
+        }
+        const bearishFVG = signals.smartMoney.fairValueGaps.filter(g => g.type === 'BEARISH' && !g.isFilled);
+        if (bearishFVG.length > 0) {
+            insight += `Chú ý vùng mất cân bằng giá (FVG) tại $${bearishFVG[0].bottom.toFixed(0)} - $${bearishFVG[0].top.toFixed(0)}. `;
+        }
+    }
 
-    if (signals.adx > 25) insight += "Động lượng xu hướng hiện tại đang ở mức cao.";
-    else insight += "Thị trường đang trong giai đoạn tích lũy hoặc thiếu xu hướng rõ ràng.";
+    if (signals.ichimoku) {
+        if (signals.ichimoku.signal === 'BULLISH') insight += "Ichimoku Cloud xác nhận xu hướng tăng. ";
+        else if (signals.ichimoku.signal === 'BEARISH') insight += "Giá nằm dưới Ichimoku Cloud, xu hướng giảm chiếm ưu thế. ";
+    }
+
+    if (signals.adx > 25) insight += "Động lượng xu hướng mạnh (ADX cao).";
+    else insight += "Thị trường đang đi ngang (Sideway), ưu tiên giao dịch biên độ.";
 
     return insight;
 };
@@ -193,6 +130,19 @@ export const analyzeTrendStrength = (signals: TechnicalSignals) => {
         { name: 'MA200', status: signals.ma200 === 'ABOVE' ? 'Bullish' : 'Bearish' },
         { name: 'ADX', value: signals.adx, status: signals.adx > 25 ? 'Strong Trend' : 'Weak Trend' }
     ];
+
+    if (signals.smartMoney) {
+         if (signals.smartMoney.orderBlocks.length > 0) {
+             indicators.push({ name: 'SMC', status: 'Order Block Active' });
+         }
+    }
+
+    if (signals.ichimoku) {
+        indicators.push({ name: 'Ichimoku', status: signals.ichimoku.signal });
+    }
+    if (signals.sar) {
+        indicators.push({ name: 'SAR', status: signals.sar.trend });
+    }
 
     return {
         score,

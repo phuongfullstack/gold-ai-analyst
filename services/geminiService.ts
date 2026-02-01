@@ -1,13 +1,22 @@
 import { GoogleGenAI, Type } from "@google/genai";
-import { MarketData, AnalysisReport } from "../types";
+import { MarketData, AnalysisReport, ChartDataPoint } from "../types";
 import { ANALYSIS_CONSTANTS, UI_LABELS } from "../utils/constants";
 import { fetchAllMarketData } from "./marketDataFetcher";
 import {
-  calculatePivotPoints,
+  calculatePivotPointsExtended,
+  calculateRSI,
+  calculateStochastic,
+  calculateIchimoku,
+  calculateParabolicSAR,
+  calculateFibonacciLevels,
+  detectOrderBlocks,
+  detectFairValueGaps,
+  detectHarmonicPatterns
+} from "../utils/technicalAlgorithms";
+import {
   calculateTrendConfidence,
   calculateTechnicalAction,
   generateMarketInsight,
-  calculateFibonacciLevels,
   analyzeLocalPremium
 } from "../utils/algorithms";
 
@@ -24,7 +33,10 @@ Nhiệm vụ: Phân tích thị trường Vàng (XAU/USD) và Vàng SJC dựa tr
 Nguyên tắc:
 1. Dữ liệu giá (XAU, USD/VND, SJC) phải CHÍNH XÁC TUYỆT ĐỐI từ nguồn uy tín.
 2. Không tự ý bịa đặt số liệu. Nếu không tìm thấy, hãy dùng dữ liệu gần nhất.
-3. Phân tích kỹ thuật phải tương đồng với các chỉ báo trên TradingView. Sử dụng các khái niệm chuyên sâu như Fibonacci, Order Block, Market Psychology, Smart Money.
+3. Phân tích kỹ thuật chuyên sâu:
+   - Sử dụng Fibonacci, Ichimoku, Bollinger Bands.
+   - Đặc biệt chú ý: Smart Money Concepts (SMC) như Order Blocks (Khối lệnh), Fair Value Gaps (Khoảng trống giá - FVG), Liquidity Sweeps (Quét thanh khoản).
+   - Mô hình giá Harmonic (Gartley, Bat, Butterfly) nếu có.
 4. Phong cách báo cáo: Sắc bén, chuyên nghiệp, tập trung vào hành động (Actionable).
 5. Luôn xây dựng kịch bản phản ứng (Scenario Planning) thay vì chỉ dự đoán một chiều.
 6. Cấu trúc báo cáo bắt buộc (trong phần fullReport):
@@ -40,43 +52,38 @@ const MODEL_NAME = "gemini-2.0-flash";
 
 const fetchFallbackData = async (): Promise<{ marketData: MarketData; report: AnalysisReport }> => {
   try {
-    const marketData = await fetchAllMarketData();
+    let marketData: MarketData;
+    try {
+       // Try to fetch real data with a 15s timeout
+       // Now using Promise.race with a longer timeout because fetchAllMarketData handles its own sub-timeouts
+       marketData = await Promise.race([
+          fetchAllMarketData(),
+          new Promise<MarketData>((_, reject) => setTimeout(() => reject(new Error("Global Timeout")), 15000))
+       ]);
+    } catch (e) {
+       console.warn("Real data fetch failed/timed out in fallback, using mock", e);
+       marketData = {
+          xauPrice: 2650.50,
+          dxyValue: 104.2,
+          sjcBuy: 83.5, sjcSell: 85.5,
+          pnjBuy: 83.5, pnjSell: 85.5,
+          btmcBuy: 84.0, btmcSell: 86.0,
+          dojiBuy: 83.0, dojiSell: 85.0,
+          ringGoldBuy: 63.5, ringGoldSell: 64.5,
+          xagPrice: 31.5,
+          silverBuy: 2.5, silverSell: 2.8,
+          usdVnd: 25450,
+          spread: 0,
+          lastUpdated: "Fallback Mode (Offline/Error)"
+       };
+    }
 
-    const report: AnalysisReport = {
-      technicalSummary: "Chế độ dữ liệu thời gian thực (Toán học). Dữ liệu kỹ thuật đang sử dụng các mốc mặc định do thiếu kết nối phân tích.",
-      macroSummary: "Dữ liệu Vĩ mô không khả dụng trong chế độ toán học thuần túy.",
-      localSpreadAnalysis: "Đang phân tích chênh lệch giá...",
-      tradingAction: UI_LABELS.ACTION.OBSERVE as any,
-      prediction: "Trung lập (Toán học)",
-      shortTermTrend: "Theo dõi các mốc hỗ trợ/kháng cự kỹ thuật.",
-      longTermTrend: "Dữ liệu dài hạn cần thêm thông tin vĩ mô.",
-      suggestedBuyZone: "N/A",
-      entryPointBuy: 0,
-      entryPointSell: 0,
-      technicalSignals: {
-        rsi: ANALYSIS_CONSTANTS.RSI.NEUTRAL,
-        stochastic: 50,
-        adx: 20,
-        cci: 0,
-        trend: UI_LABELS.TREND.NEUTRAL,
-        support: Math.floor(marketData.xauPrice - 20),
-        resistance: Math.ceil(marketData.xauPrice + 20),
-        macd: "NEUTRAL",
-        bollinger: "NEUTRAL",
-        ma50: "ABOVE",
-        ma200: "ABOVE"
-      },
-      fullReport: "Hệ thống đang chạy ở chế độ Phân tích Toán học do thiếu API Key. Các chỉ báo kỹ thuật được đặt ở mức trung tính. Giá vàng và tỷ giá vẫn được cập nhật realtime từ các nguồn public uy tín.",
-      news: []
-    };
-
-    // Apply Algorithmic Engine to Fallback Data
     // Mock chart data for fallback
     const mockChartData: ChartDataPoint[] = [];
     const baseTime = Math.floor(Date.now() / 1000);
     let lastPrice = marketData.xauPrice || 2600;
 
-    for (let i = 24; i >= 0; i--) {
+    for (let i = 49; i >= 0; i--) { // Increased to 50 points for better algo calc
       const time = (baseTime - i * 3600).toString();
       const change = (Math.random() * 10 - 5);
       const open = lastPrice;
@@ -95,7 +102,64 @@ const fetchFallbackData = async (): Promise<{ marketData: MarketData; report: An
       });
       lastPrice = close;
     }
-    report.chartData = mockChartData;
+
+    // Extract arrays for algo
+    const opens = mockChartData.map(d => d.open || d.xau);
+    const highs = mockChartData.map(d => d.high || d.xau);
+    const lows = mockChartData.map(d => d.low || d.xau);
+    const closes = mockChartData.map(d => d.close || d.xau);
+
+    // Calculate Signals Locally
+    const rsi = calculateRSI(closes);
+    const stochastic = calculateStochastic(highs, lows, closes);
+    const ichimoku = calculateIchimoku(highs, lows, closes);
+    const sar = calculateParabolicSAR(highs, lows, closes);
+
+    // Last OHLC for Pivots
+    const lastOHLC = mockChartData[mockChartData.length - 1];
+    const pivots = calculatePivotPointsExtended(lastOHLC.high || lastOHLC.xau, lastOHLC.low || lastOHLC.xau, lastOHLC.close || lastOHLC.xau, lastOHLC.open || lastOHLC.xau);
+
+    // Calculate Advanced Signals (SMC & Harmonics)
+    const orderBlocks = detectOrderBlocks(opens, highs, lows, closes);
+    const fairValueGaps = detectFairValueGaps(highs, lows);
+    const harmonicPatterns = detectHarmonicPatterns(highs, lows);
+
+    const report: AnalysisReport = {
+      technicalSummary: "Chế độ dữ liệu thời gian thực (Toán học). Dữ liệu kỹ thuật đang sử dụng các mốc mặc định do thiếu kết nối phân tích.",
+      macroSummary: "Dữ liệu Vĩ mô không khả dụng trong chế độ toán học thuần túy.",
+      localSpreadAnalysis: "Đang phân tích chênh lệch giá...",
+      tradingAction: UI_LABELS.ACTION.OBSERVE as any,
+      prediction: "Trung lập (Toán học)",
+      shortTermTrend: "Theo dõi các mốc hỗ trợ/kháng cự kỹ thuật.",
+      longTermTrend: "Dữ liệu dài hạn cần thêm thông tin vĩ mô.",
+      suggestedBuyZone: "N/A",
+      entryPointBuy: 0,
+      entryPointSell: 0,
+      technicalSignals: {
+        rsi,
+        stochastic,
+        adx: 20,
+        cci: 0,
+        trend: UI_LABELS.TREND.NEUTRAL,
+        support: Math.floor(marketData.xauPrice - 20),
+        resistance: Math.ceil(marketData.xauPrice + 20),
+        macd: "NEUTRAL",
+        bollinger: "NEUTRAL",
+        ma50: "ABOVE",
+        ma200: "ABOVE",
+        pivotPoints: pivots,
+        ichimoku,
+        sar,
+        smartMoney: {
+          orderBlocks,
+          fairValueGaps
+        },
+        harmonicPatterns
+      },
+      fullReport: "Hệ thống đang chạy ở chế độ Phân tích Toán học do thiếu API Key. Các chỉ báo kỹ thuật được đặt ở mức trung tính. Giá vàng và tỷ giá vẫn được cập nhật realtime từ các nguồn public uy tín.",
+      news: [],
+      chartData: mockChartData
+    };
 
     const confidence = calculateTrendConfidence(report.technicalSignals);
     report.technicalSignals.confidenceScore = confidence;
@@ -128,7 +192,11 @@ export const fetchMarketAnalysis = async (): Promise<{ marketData: MarketData; r
     const now = new Date().toLocaleString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' });
 
     // FETCH REAL-TIME DATA FIRST AS GROUND TRUTH
-    const realData = await fetchAllMarketData();
+    // Using a race with 15s timeout
+    const realData = await Promise.race([
+        fetchAllMarketData(),
+        new Promise<MarketData>((_, reject) => setTimeout(() => reject(new Error("Global Data Timeout")), 15000))
+    ]);
 
     const prompt = `
       Thời gian phân tích: ${now}.
@@ -155,7 +223,7 @@ export const fetchMarketAnalysis = async (): Promise<{ marketData: MarketData; r
         + RSI (14), Stochastic Oscillator (14, 3, 3), CCI (20), ADX (14).
         + Giá so với MA50 và MA200.
         + Bollinger Bands, MACD Level & Signal.
-      - Nhận diện các mẫu hình giá (Price Patterns) hiện tại: ví dụ Double Top, Double Bottom, Head and Shoulders, Triangle, Flag, Pennant, v.v.
+      - Nhận diện các mẫu hình giá (Price Patterns) và SMC (Order Blocks, FVG): ví dụ Double Top, Head and Shoulders, Bearish Order Block tại kháng cự.
 
       BƯỚC 3: LẤY TIN TỨC KINH TẾ XÃ HỘI (MACRO) & CHÍNH TRỊ
       - Tìm kiếm "Gold market news today geopolitical news impact on gold" hoặc "Financial news breaking today".
@@ -163,8 +231,8 @@ export const fetchMarketAnalysis = async (): Promise<{ marketData: MarketData; r
       - Tìm kiếm "World news geopolitical events today" có ảnh hưởng đến tâm lý nhà đầu tư.
 
       BƯỚC 4: LẤY DỮ LIỆU LỊCH SỬ (CHART)
-      - Tìm kiếm "XAUUSD price history last 24 hours hourly OHLC" để lấy chuỗi giá vàng trong 24 giờ qua.
-      - Lấy khoảng 12-24 điểm dữ liệu (mỗi 1-2 giờ một điểm).
+      - Tìm kiếm "XAUUSD price history last 50 hours hourly OHLC" để lấy chuỗi giá vàng trong 50 giờ qua.
+      - Cố gắng lấy ít nhất 30-50 điểm dữ liệu để phục vụ tính toán chỉ báo.
       - Mỗi điểm dữ liệu CẦN có: Open, High, Low, Close (OHLC).
 
       BƯỚC 5: TỔNG HỢP BÁO CÁO
@@ -172,7 +240,7 @@ export const fetchMarketAnalysis = async (): Promise<{ marketData: MarketData; r
       - KHÔNG CẦN TÍNH TOÁN "Spread" hay "Giá quy đổi", hệ thống sẽ tự tính.
 
       YÊU CẦU ĐẦU RA (JSON):
-      Trong phần 'shortTermTrend', hãy phân tích cực kỳ chi tiết các mốc giá trong 1-3 ngày tới dựa trên nến 1H/4H.
+      Trong phần 'shortTermTrend', hãy phân tích cực kỳ chi tiết các mốc giá trong 1-3 ngày tới dựa trên nến 1H/4H, chú ý Order Blocks và FVG.
       Trong phần 'longTermTrend', hãy phân tích xu hướng tuần/tháng dựa trên nến Daily/Weekly và chu kỳ kinh tế của FED.
       Trong phần 'fullReport', hãy viết một bài phân tích chuyên sâu tổng hợp mọi yếu tố theo ĐÚNG CẤU TRÚC 4 PHẦN và BOTTOM LINE đã nêu trong hướng dẫn hệ thống. Sử dụng ngôn ngữ chuyên nghiệp của một Senior Trader.
     `;
@@ -347,12 +415,13 @@ export const fetchMarketAnalysis = async (): Promise<{ marketData: MarketData; r
     }
 
     // --- ALGORITHMIC VERIFICATION & ENRICHMENT ---
-    // 1. Calculate Pivot Points & Fibonacci if OHLC is available
+    // 1. Calculate Pivot Points & Fibo if OHLC is available
     if (result.marketData.ohlc) {
         const { high, low, close, open } = result.marketData.ohlc;
 
         if (high && low && close) {
-            const pivots = calculatePivotPoints(high, low, close);
+            // New Extended Pivot Calculation
+            const pivots = calculatePivotPointsExtended(high, low, close, open || close);
             result.report.technicalSignals.pivotPoints = pivots;
         }
 
@@ -362,11 +431,44 @@ export const fetchMarketAnalysis = async (): Promise<{ marketData: MarketData; r
         }
     }
 
-    // 2. Calculate Trend Confidence Score
+    // 2. Advanced Indicators Calculation using retrieved Chart Data
+    if (result.report.chartData && result.report.chartData.length > 0) {
+        // Sort by time ascending
+        const sortedData = [...result.report.chartData].sort((a, b) => parseInt(a.time) - parseInt(b.time));
+
+        const opens = sortedData.map(d => d.open || d.xau);
+        const highs = sortedData.map(d => d.high || d.xau);
+        const lows = sortedData.map(d => d.low || d.xau);
+        const closes = sortedData.map(d => d.close || d.xau);
+
+        // Calculate and Overwrite AI guesses with Math
+        if (closes.length >= 14) {
+            result.report.technicalSignals.rsi = calculateRSI(closes);
+            result.report.technicalSignals.stochastic = calculateStochastic(highs, lows, closes);
+        }
+
+        if (closes.length >= 26) {
+             const ichimoku = calculateIchimoku(highs, lows, closes);
+             if (ichimoku) result.report.technicalSignals.ichimoku = ichimoku;
+        }
+
+        const sar = calculateParabolicSAR(highs, lows, closes);
+        result.report.technicalSignals.sar = sar;
+
+        // Calculate Advanced Signals (SMC & Harmonics)
+        result.report.technicalSignals.smartMoney = {
+          orderBlocks: detectOrderBlocks(opens, highs, lows, closes),
+          fairValueGaps: detectFairValueGaps(highs, lows)
+        };
+        result.report.technicalSignals.harmonicPatterns = detectHarmonicPatterns(highs, lows);
+    }
+
+    // 3. Calculate Trend Confidence Score
+    // Now includes SMC and new indicators in the confidence calculation
     const confidence = calculateTrendConfidence(result.report.technicalSignals);
     result.report.technicalSignals.confidenceScore = confidence;
 
-    // 3. Generate Algorithmic Insight & Action
+    // 4. Generate Algorithmic Insight & Action
     const algoAction = calculateTechnicalAction(result.report.technicalSignals);
     const algoInsight = generateMarketInsight(result.report.technicalSignals);
 
@@ -378,7 +480,7 @@ export const fetchMarketAnalysis = async (): Promise<{ marketData: MarketData; r
     // Append algorithmic insight to technical summary
     result.report.technicalSummary = `${result.report.technicalSummary}\n\n[Hệ thống]: ${algoInsight}`;
 
-    // 4. Local Premium Analysis
+    // 5. Local Premium Analysis
     if (result.marketData.spread !== undefined) {
         const premiumAdvice = analyzeLocalPremium(result.marketData.spread);
         result.report.localSpreadAnalysis = `${result.report.localSpreadAnalysis}\n\n${premiumAdvice}`;
