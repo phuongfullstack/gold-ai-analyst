@@ -50,10 +50,21 @@ const fetchFallbackData = async (): Promise<{ marketData: MarketData; report: An
     try {
        // Try to fetch real data with a 15s timeout
        // Now using Promise.race with a longer timeout because fetchAllMarketData handles its own sub-timeouts
-       marketData = await Promise.race([
-          fetchAllMarketData(),
-          new Promise<MarketData>((_, reject) => setTimeout(() => reject(new Error("Global Timeout")), 15000))
-       ]);
+       let timeoutId: ReturnType<typeof setTimeout> | null = null;
+       const timeoutPromise = new Promise<MarketData>((_, reject) => {
+         timeoutId = setTimeout(() => reject(new Error("Timeout")), 5000);
+       });
+
+       try {
+         marketData = await Promise.race([
+           fetchAllMarketData(),
+           timeoutPromise
+         ]);
+       } finally {
+         if (timeoutId !== null) {
+           clearTimeout(timeoutId);
+         }
+       }
     } catch (e) {
        console.warn("Real data fetch failed/timed out in fallback, using mock", e);
        marketData = {
