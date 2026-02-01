@@ -117,11 +117,11 @@ const AdvancedTechnicals: React.FC<AdvancedTechnicalsProps> = ({ signals }) => {
         {/* Support/Resist Column */}
         <div className="grid grid-cols-2 gap-3">
           <div className="p-3 bg-slate-900/40 rounded-xl border border-slate-700/30">
-            <div className="text-emerald-500 text-[9px] font-black uppercase mb-1">Hỗ trợ AI</div>
+            <div className="text-emerald-500 text-[9px] font-black uppercase mb-1">Hỗ trợ</div>
             <div className="text-lg font-black text-emerald-400 font-mono">${signals.support}</div>
           </div>
           <div className="p-3 bg-slate-900/40 rounded-xl border border-slate-700/30">
-            <div className="text-rose-500 text-[9px] font-black uppercase mb-1">Kháng cự AI</div>
+            <div className="text-rose-500 text-[9px] font-black uppercase mb-1">Kháng cự</div>
             <div className="text-lg font-black text-rose-400 font-mono">${signals.resistance}</div>
           </div>
 

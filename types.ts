@@ -85,6 +85,7 @@ export interface AnalysisReport {
   technicalSignals: TechnicalSignals;
   fullReport: string;
   news: MarketNews[];
+  chartData?: ChartDataPoint[];
 }
 
 export interface ChatMessage {
