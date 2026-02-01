@@ -15,6 +15,7 @@ interface MarketChartProps {
 const MarketChart: React.FC<MarketChartProps> = ({ supportLevel, resistanceLevel }) => {
   const containerId = "tradingview_widget_xauusd";
   const initialized = useRef(false);
+  const widgetRef = useRef<any>(null);
 
   useEffect(() => {
     // Avoid re-initializing if already done
@@ -23,7 +24,7 @@ const MarketChart: React.FC<MarketChartProps> = ({ supportLevel, resistanceLevel
 
     const initWidget = () => {
       if (typeof window.TradingView !== 'undefined') {
-        new window.TradingView.widget({
+        widgetRef.current = new window.TradingView.widget({
           autosize: true,
           symbol: "OANDA:XAUUSD",
           interval: "60", // Default to 1 Hour
@@ -45,6 +46,9 @@ const MarketChart: React.FC<MarketChartProps> = ({ supportLevel, resistanceLevel
           withdateranges: true,
           hide_volume: true
         });
+
+        // Expose widget for snapshot capture
+        (window as any).tvWidget = widgetRef.current;
       }
     };
 

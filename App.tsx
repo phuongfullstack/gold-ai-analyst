@@ -23,7 +23,6 @@ import { ANALYSIS_CONSTANTS } from './utils/constants';
 import { useToast } from './contexts/ToastContext';
 import html2canvas from 'html2canvas';
 import { jsPDF } from 'jspdf';
-import { createChart, ColorType } from 'lightweight-charts';
 
 const INITIAL_MARKET_DATA: MarketData = {
   xauPrice: 0,
@@ -128,9 +127,9 @@ const App: React.FC = () => {
     const container = document.createElement('div');
     container.id = 'export-container';
     Object.assign(container.style, {
-      position: 'fixed',
+      position: 'absolute',
       top: '0',
-      left: '-9999px', // Position way off screen
+      left: '-9999px',
       width: ANALYSIS_CONSTANTS.EXPORT_WINDOW_WIDTH + 'px',
       backgroundColor: '#020617',
       zIndex: '-9999'
@@ -147,185 +146,80 @@ const App: React.FC = () => {
     clone.querySelectorAll('button, .no-export, #chat-widget-container, .tradingview-widget-copyright, .settings-trigger, [role="button"], .fixed.bottom-4').forEach(el => el.remove());
 
     // Find the TradingView container in the clone.
-    // In our app, it's either by ID or inside the MarketChart component's wrapper.
     const tvTarget = clone.querySelector('#tradingview_widget_xauusd');
-    const tvWrapper = tvTarget?.closest('.bg-slate-900.rounded-xl') || clone.querySelector('.tradingview-widget-container');
+    // Target the specific black area where the iframe lives, preserving the component's header
+    const tvIframeContainer = tvTarget?.closest('.bg-slate-950');
 
-    if (tvWrapper) {
-      const chartWrapper = document.createElement('div');
-      Object.assign(chartWrapper.style, {
-        width: '100%',
-        height: '550px',
-        background: '#0f172a',
-        borderRadius: '24px',
-        padding: '30px',
-        marginTop: '20px',
-        border: '1px solid #334155',
-        display: 'flex',
-        flexDirection: 'column'
-      });
-
-      const title = document.createElement('h3');
-      title.innerText = 'BIỂU ĐỒ DIỄN BIẾN THỊ TRƯỜNG XAU/USD (24 GIỜ QUA)';
-      Object.assign(title.style, {
-        color: '#eab308',
-        fontSize: '16px',
-        fontWeight: '900',
-        marginBottom: '20px',
-        textAlign: 'center',
-        letterSpacing: '2px',
-        textTransform: 'uppercase'
-      });
-      chartWrapper.appendChild(title);
-      
+    if (tvIframeContainer) {
       const chartCanvas = document.createElement('div');
       chartCanvas.id = 'export-canvas-target';
       Object.assign(chartCanvas.style, {
         width: '100%',
-        flex: '1'
+        height: '500px',
+        position: 'relative'
       });
-      chartWrapper.appendChild(chartCanvas);
 
-      tvWrapper.replaceWith(chartWrapper);
+      // Clear the container and add our canvas target
+      tvIframeContainer.innerHTML = '';
+      tvIframeContainer.appendChild(chartCanvas);
+      // Remove any fixed height from the container to allow canvas to define it
+      (tvIframeContainer as HTMLElement).style.height = 'auto';
     }
 
     container.appendChild(clone);
 
-    // Render the lightweight chart into the cloned target
-    const target = container.querySelector('#export-canvas-target') as HTMLElement;
-    if (target && report?.chartData) {
-      try {
-        // Create Legend Overlay in the target container
-        const legend = document.createElement('div');
-        Object.assign(legend.style, {
-          position: 'absolute',
-          top: '12px',
-          left: '12px',
-          zIndex: '10',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '4px',
-          padding: '8px',
-          background: 'rgba(15, 23, 42, 0.7)',
-          borderRadius: '4px',
-          fontSize: '12px',
-          color: '#fff',
-          border: '1px solid #334155'
-        });
-        legend.innerHTML = `
-          <div style="display: flex; align-items: center; gap: 8px;">
-            <div style="width: 12px; height: 12px; background: #eab308; border-radius: 2px;"></div>
-            <span style="font-weight: bold;">GOLD (XAU/USD)</span>
-          </div>
-          <div style="display: flex; align-items: center; gap: 8px;">
-            <div style="width: 12px; height: 2px; background: #3b82f6;"></div>
-            <span style="font-weight: bold;">DXY INDEX</span>
-          </div>
-        `;
-        target.style.position = 'relative';
-        target.appendChild(legend);
+    // Use official TradingView snapshot if available
+    const target = container.querySelector("#export-canvas-target") as HTMLElement;
+    if (target) {
+      target.style.display = "flex";
+      target.style.alignItems = "center";
+      target.style.justifyContent = "center";
+      target.style.backgroundColor = "#000";
+      target.style.minHeight = "500px";
 
-        // Add Watermark
-        const watermark = document.createElement('div');
-        Object.assign(watermark.style, {
-          position: 'absolute',
-          bottom: '50px',
-          right: '20px',
-          zIndex: '5',
-          opacity: '0.1',
-          pointerEvents: 'none',
-          color: '#fff',
-          fontSize: '32px',
-          fontWeight: '900',
-          letterSpacing: '5px'
-        });
-        watermark.innerText = 'GOLD AI ANALYST';
-        target.appendChild(watermark);
+      const tvWidget = (window as any).tvWidget;
+      if (tvWidget && typeof tvWidget.image === "function") {
+        try {
+          // Wait for widget to be ready before taking image
+          await new Promise<void>((resolve) => {
+            if (tvWidget._ready) resolve();
+            else tvWidget.ready(resolve);
+            // Fallback if ready takes too long
+            setTimeout(resolve, 3000);
+          });
 
-        const chart = createChart(target, {
-          width: 1100, // Fixed width for export consistency
-          height: 440,
-          layout: {
-            background: { type: ColorType.Solid, color: 'transparent' },
-            textColor: '#94a3b8'
-          },
-          grid: {
-            vertLines: { color: 'rgba(51, 65, 85, 0.5)' },
-            horzLines: { color: 'rgba(51, 65, 85, 0.5)' }
-          },
-          timeScale: {
-            borderVisible: false,
-            timeVisible: true
-          },
-          rightPriceScale: {
-            borderVisible: false,
-          },
-        });
+          const snapshotUrl = await new Promise<string>((resolve, reject) => {
+            const timeout = setTimeout(() => reject(new Error("TradingView snapshot timeout")), 15000);
+            tvWidget.image((id: string) => {
+              clearTimeout(timeout);
+              // TradingView returns an ID. We want the direct PNG for better embedding.
+              resolve(`https://www.tradingview.com/x/${id}.png`);
+            });
+          });
 
-        const goldSeries = chart.addCandlestickSeries({
-          upColor: '#10b981',
-          downColor: '#ef4444',
-          borderVisible: false,
-          wickUpColor: '#10b981',
-          wickDownColor: '#ef4444',
-          priceFormat: {
-            type: 'price',
-            precision: 2,
-            minMove: 0.01,
-          },
-        });
+          if (snapshotUrl) {
+             const img = document.createElement("img");
+             img.src = `https://api.allorigins.win/raw?url=${encodeURIComponent(snapshotUrl)}`;
+             img.style.maxWidth = "100%";
+             img.style.maxHeight = "100%";
+             img.style.objectFit = "contain";
+             img.crossOrigin = "anonymous";
+             target.innerHTML = "";
+             target.appendChild(img);
 
-        const dxySeries = chart.addLineSeries({
-          color: '#3b82f6',
-          lineWidth: 2,
-          priceScaleId: 'left',
-          priceFormat: {
-            type: 'price',
-            precision: 3,
-            minMove: 0.001,
-          },
-        });
-
-        chart.priceScale('left').applyOptions({
-          visible: true,
-          borderVisible: false,
-        });
-
-        // Deduplicate and sort chart points by time
-        const seenTimes = new Set();
-        const chartPoints = report.chartData
-          .map(d => ({
-            time: parseInt(d.time) as any,
-            gold: d.xau,
-            dxy: d.dxy,
-            open: d.open,
-            high: d.high,
-            low: d.low,
-            close: d.close
-          }))
-          .filter(p => {
-            if (seenTimes.has(p.time)) return false;
-            seenTimes.add(p.time);
-            return true;
-          })
-          .sort((a, b) => a.time - b.time);
-
-        goldSeries.setData(chartPoints.map(p => ({
-          time: p.time,
-          open: p.open ?? p.gold,
-          high: p.high ?? p.gold + 1,
-          low: p.low ?? p.gold - 1,
-          close: p.close ?? p.gold
-        })));
-        dxySeries.setData(chartPoints.map(p => ({ time: p.time, value: p.dxy })));
-
-        chart.timeScale().fitContent();
-      } catch (err) {
-        console.error("Chart rendering error in export:", err);
+             await new Promise((resolve) => {
+               img.onload = resolve;
+               img.onerror = resolve;
+             });
+          }
+        } catch (err) {
+          console.error("Failed to get TradingView snapshot:", err);
+          target.innerHTML = "<div style=\"color: #475569; font-size: 14px; padding: 20px; text-align: center;\">Không thể chụp biểu đồ TradingView tự động.</div>";
+        }
+      } else {
+        target.innerHTML = "<div style=\"color: #475569; font-size: 14px; padding: 20px; text-align: center;\">Vui lòng đợi biểu đồ TradingView tải xong.</div>";
       }
     }
-
-    // Increased delay to ensure rendering of canvas, candlestick charts, and complex styles
     await new Promise(r => setTimeout(r, 1200));
     return container;
   };

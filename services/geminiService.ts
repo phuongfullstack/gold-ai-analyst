@@ -44,8 +44,8 @@ const fetchFallbackData = async (): Promise<{ marketData: MarketData; report: An
       shortTermTrend: "Theo dõi các mốc hỗ trợ/kháng cự kỹ thuật.",
       longTermTrend: "Dữ liệu dài hạn cần thêm thông tin vĩ mô.",
       suggestedBuyZone: "N/A",
-      entryPointBuy: 0,
-      entryPointSell: 0,
+      entryPointBuy: Math.floor(marketData.xauPrice - 15),
+      entryPointSell: Math.ceil(marketData.xauPrice + 15),
       technicalSignals: {
         rsi: ANALYSIS_CONSTANTS.RSI.NEUTRAL,
         stochastic: 50,
