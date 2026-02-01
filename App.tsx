@@ -70,6 +70,13 @@ const App: React.FC = () => {
            newState.silverBuy = Number((basePrice * 0.95).toFixed(2));
            newState.silverSell = Number((basePrice * 1.10).toFixed(2));
         }
+
+        // Recalculate spread if possible
+        if (newState.xauPrice > 0 && newState.usdVnd > 0 && newState.sjcSell > 0) {
+           const convertedPrice = (newState.xauPrice * newState.usdVnd * ANALYSIS_CONSTANTS.GOLD_CONVERSION_FACTOR) / 1000000;
+           newState.spread = Number((newState.sjcSell - convertedPrice).toFixed(2));
+        }
+
         newState.lastUpdated = new Date().toLocaleTimeString('vi-VN');
         return newState;
       });
@@ -136,7 +143,8 @@ const App: React.FC = () => {
     const clone = mainContent.cloneNode(true) as HTMLElement;
 
     // Cleanup clone: Remove interactive elements, buttons, chat widgets, and TV specific items
-    clone.querySelectorAll('button, .no-export, #chat-widget-container, .tradingview-widget-copyright, .settings-trigger').forEach(el => el.remove());
+    // Using broader selectors to ensure absolute cleanup of UI controls
+    clone.querySelectorAll('button, .no-export, #chat-widget-container, .tradingview-widget-copyright, .settings-trigger, [role="button"], .fixed.bottom-4').forEach(el => el.remove());
 
     // Find the TradingView container in the clone.
     // In our app, it's either by ID or inside the MarketChart component's wrapper.
@@ -254,11 +262,12 @@ const App: React.FC = () => {
           },
         });
 
-        const goldSeries = chart.addAreaSeries({
-          lineColor: '#eab308',
-          topColor: 'rgba(234, 179, 8, 0.4)',
-          bottomColor: 'rgba(234, 179, 8, 0)',
-          lineWidth: 3,
+        const goldSeries = chart.addCandlestickSeries({
+          upColor: '#10b981',
+          downColor: '#ef4444',
+          borderVisible: false,
+          wickUpColor: '#10b981',
+          wickDownColor: '#ef4444',
           priceFormat: {
             type: 'price',
             precision: 2,
@@ -288,7 +297,11 @@ const App: React.FC = () => {
           .map(d => ({
             time: parseInt(d.time) as any,
             gold: d.xau,
-            dxy: d.dxy
+            dxy: d.dxy,
+            open: d.open,
+            high: d.high,
+            low: d.low,
+            close: d.close
           }))
           .filter(p => {
             if (seenTimes.has(p.time)) return false;
@@ -297,7 +310,13 @@ const App: React.FC = () => {
           })
           .sort((a, b) => a.time - b.time);
 
-        goldSeries.setData(chartPoints.map(p => ({ time: p.time, value: p.gold })));
+        goldSeries.setData(chartPoints.map(p => ({
+          time: p.time,
+          open: p.open ?? p.gold,
+          high: p.high ?? p.gold + 1,
+          low: p.low ?? p.gold - 1,
+          close: p.close ?? p.gold
+        })));
         dxySeries.setData(chartPoints.map(p => ({ time: p.time, value: p.dxy })));
 
         chart.timeScale().fitContent();
@@ -306,8 +325,8 @@ const App: React.FC = () => {
       }
     }
 
-    // Small delay to ensure rendering of canvas and styles
-    await new Promise(r => setTimeout(r, 800));
+    // Increased delay to ensure rendering of canvas, candlestick charts, and complex styles
+    await new Promise(r => setTimeout(r, 1200));
     return container;
   };
 

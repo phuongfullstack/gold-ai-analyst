@@ -1,4 +1,5 @@
 import { MarketData } from '../types';
+import { ANALYSIS_CONSTANTS } from '../utils/constants';
 
 const WORLD_GOLD_API = 'https://api.gold-api.com/price/XAU';
 const WORLD_SILVER_API = 'https://api.gold-api.com/price/XAG';
@@ -233,6 +234,12 @@ export const fetchAllMarketData = async (): Promise<MarketData> => {
     const basePrice = (marketData.xagPrice * marketData.usdVnd * 1.2057) / 1000000;
     marketData.silverBuy = Number((basePrice * 0.95).toFixed(2));
     marketData.silverSell = Number((basePrice * 1.10).toFixed(2));
+  }
+
+  // Calculate Premium/Spread
+  if (marketData.xauPrice > 0 && marketData.usdVnd > 0 && marketData.sjcSell > 0) {
+    const convertedPrice = (marketData.xauPrice * marketData.usdVnd * ANALYSIS_CONSTANTS.GOLD_CONVERSION_FACTOR) / 1000000;
+    marketData.spread = Number((marketData.sjcSell - convertedPrice).toFixed(2));
   }
 
   return marketData;
