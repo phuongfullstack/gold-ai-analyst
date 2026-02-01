@@ -30,7 +30,7 @@ const AnalysisPanel: React.FC<AnalysisPanelProps> = ({ report, isLoading, onRefr
           ) : (
             <>
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
-              <span>Refresh</span>
+              <span>Làm mới</span>
             </>
           )}
         </button>
@@ -66,15 +66,19 @@ const AnalysisPanel: React.FC<AnalysisPanelProps> = ({ report, isLoading, onRefr
         <div className="space-y-4">
           <div className="bg-slate-900/30 p-4 rounded-xl border border-slate-700/20">
             <h4 className="text-sky-400 font-black mb-2 text-[9px] uppercase tracking-widest">Phân tích Kỹ thuật</h4>
-            <p className="text-slate-300 text-xs leading-relaxed">{report.technicalSummary}</p>
+            <div className="text-slate-300 text-xs leading-relaxed space-y-2 whitespace-pre-wrap">
+              {report.technicalSummary}
+            </div>
           </div>
           <div className="bg-slate-900/30 p-4 rounded-xl border border-slate-700/20">
             <h4 className="text-indigo-400 font-black mb-2 text-[9px] uppercase tracking-widest">Vĩ mô & DXY</h4>
-            <p className="text-slate-300 text-xs leading-relaxed">{report.macroSummary}</p>
+            <div className="text-slate-300 text-xs leading-relaxed whitespace-pre-wrap">{report.macroSummary}</div>
           </div>
           <div className="bg-slate-900/30 p-4 rounded-xl border border-slate-700/20">
             <h4 className="text-yellow-500 font-black mb-2 text-[9px] uppercase tracking-widest">Thị trường Nội địa</h4>
-            <p className="text-slate-300 text-xs leading-relaxed">{report.localSpreadAnalysis}</p>
+            <div className="text-slate-300 text-xs leading-relaxed space-y-2 whitespace-pre-wrap">
+              {report.localSpreadAnalysis}
+            </div>
           </div>
         </div>
       </div>

@@ -77,14 +77,14 @@ const AdvancedTechnicals: React.FC<AdvancedTechnicalsProps> = ({ signals }) => {
         {/* Strength Column */}
         <div className="grid grid-cols-2 gap-3">
           <div className="p-3 bg-slate-900/40 rounded-xl border border-slate-700/30 flex flex-col justify-between">
-            <span className="text-slate-500 text-[9px] font-black uppercase tracking-tighter">ADX Strength</span>
+            <span className="text-slate-500 text-[9px] font-black uppercase tracking-tighter">Sức mạnh ADX</span>
             <div className={`text-2xl font-black mt-2 ${getAdxColor(signals.adx)}`}>{signals.adx}</div>
-            <span className="text-[9px] text-slate-400 font-bold uppercase mt-1">Sức mạnh xu hướng</span>
+            <span className="text-[9px] text-slate-400 font-bold uppercase mt-1">Cường độ xu hướng</span>
           </div>
           <div className="p-3 bg-slate-900/40 rounded-xl border border-slate-700/30 flex flex-col justify-between">
-            <span className="text-slate-500 text-[9px] font-black uppercase tracking-tighter">CCI Momentum</span>
+            <span className="text-slate-500 text-[9px] font-black uppercase tracking-tighter">Động lượng CCI</span>
             <div className={`text-2xl font-black mt-2 ${signals.cci > 100 ? 'text-rose-400' : signals.cci < -100 ? 'text-emerald-400' : 'text-slate-200'}`}>{signals.cci}</div>
-            <span className="text-[9px] text-slate-400 font-bold uppercase mt-1">Động lượng</span>
+            <span className="text-[9px] text-slate-400 font-bold uppercase mt-1">Xung lực giá</span>
           </div>
         </div>
 
@@ -117,15 +117,15 @@ const AdvancedTechnicals: React.FC<AdvancedTechnicalsProps> = ({ signals }) => {
         {/* Support/Resist Column */}
         <div className="grid grid-cols-2 gap-3">
           <div className="p-3 bg-slate-900/40 rounded-xl border border-slate-700/30">
-            <div className="text-emerald-500 text-[9px] font-black uppercase mb-1">AI Support</div>
+            <div className="text-emerald-500 text-[9px] font-black uppercase mb-1">Hỗ trợ AI</div>
             <div className="text-lg font-black text-emerald-400 font-mono">${signals.support}</div>
           </div>
           <div className="p-3 bg-slate-900/40 rounded-xl border border-slate-700/30">
-            <div className="text-rose-500 text-[9px] font-black uppercase mb-1">AI Resist</div>
+            <div className="text-rose-500 text-[9px] font-black uppercase mb-1">Kháng cự AI</div>
             <div className="text-lg font-black text-rose-400 font-mono">${signals.resistance}</div>
           </div>
 
-          {signals.pivotPoints ? (
+          {signals.pivotPoints && (
              <>
                 <div className="p-3 bg-slate-900/40 rounded-xl border border-emerald-500/20 relative overflow-hidden">
                    <div className="absolute top-0 right-0 p-1 bg-emerald-500/20 rounded-bl-lg">
@@ -142,7 +142,36 @@ const AdvancedTechnicals: React.FC<AdvancedTechnicalsProps> = ({ signals }) => {
                    <div className="text-lg font-black text-rose-200 font-mono">${signals.pivotPoints.r1}</div>
                 </div>
              </>
-          ) : (
+          )}
+
+          {signals.fibonacciLevels && (
+             <div className="p-3 bg-slate-900/40 rounded-xl border border-blue-500/20 col-span-2 relative overflow-hidden">
+                <div className="absolute top-0 right-0 p-1 bg-blue-500/20 rounded-bl-lg">
+                   <span className="text-[8px] text-blue-400 font-bold px-1">FIBONACCI</span>
+                </div>
+                <div className="text-slate-400 text-[9px] font-black uppercase mb-2">Hồi quy {signals.fibonacciLevels.trend === 'UP' ? 'Tăng' : 'Giảm'}</div>
+                <div className="grid grid-cols-2 gap-x-4 gap-y-1">
+                   <div className="flex justify-between text-[10px] font-mono">
+                      <span className="text-slate-500">23.6%</span>
+                      <span className="text-slate-300">${signals.fibonacciLevels.level236}</span>
+                   </div>
+                   <div className="flex justify-between text-[10px] font-mono">
+                      <span className="text-slate-500">38.2%</span>
+                      <span className="text-slate-300">${signals.fibonacciLevels.level382}</span>
+                   </div>
+                   <div className="flex justify-between text-[10px] font-mono">
+                      <span className="text-slate-500">50.0%</span>
+                      <span className="text-slate-300 font-bold text-blue-400">${signals.fibonacciLevels.level500}</span>
+                   </div>
+                   <div className="flex justify-between text-[10px] font-mono">
+                      <span className="text-slate-500">61.8%</span>
+                      <span className="text-slate-300 font-bold text-blue-400">${signals.fibonacciLevels.level618}</span>
+                   </div>
+                </div>
+             </div>
+          )}
+
+          {!signals.pivotPoints && !signals.fibonacciLevels && (
             <div className="col-span-2 p-3 bg-slate-900/40 rounded-xl border border-slate-700/30">
                <div className="flex justify-between items-center">
                   <span className="text-slate-500 text-[9px] font-black uppercase">MACD</span>

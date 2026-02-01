@@ -1,5 +1,6 @@
 import React from 'react';
 import { AnalysisReport, MarketData } from '../types';
+import { UI_LABELS } from '../utils/constants';
 
 interface MarketSnapshotProps {
   report: AnalysisReport;
@@ -9,18 +10,17 @@ interface MarketSnapshotProps {
 const MarketSnapshot: React.FC<MarketSnapshotProps> = ({ report, marketData }) => {
   const { technicalSignals } = report;
   
-  // Logic to determine market sentiment
+  // Logic to determine market sentiment using unified algorithmic score
   const getSentiment = () => {
-    let score = 0;
-    if (technicalSignals.rsi > 60) score += 1;
-    if (technicalSignals.rsi < 40) score -= 1;
-    if (technicalSignals.ma50 === 'ABOVE') score += 1;
-    if (technicalSignals.ma200 === 'ABOVE') score += 1;
-    if (technicalSignals.adx > 25) score *= 1.2; // Trend is strong
+    const confidence = technicalSignals.confidenceScore;
 
-    if (score > 1.5) return { label: 'BULLISH', color: 'text-emerald-400', bg: 'bg-emerald-500/10', icon: '🚀' };
-    if (score < -1) return { label: 'BEARISH', color: 'text-rose-400', bg: 'bg-rose-500/10', icon: '📉' };
-    return { label: 'NEUTRAL', color: 'text-yellow-400', bg: 'bg-yellow-500/10', icon: '⚖️' };
+    if (confidence) {
+       const { label } = confidence;
+       if (label.includes('TÍCH CỰC') || label.includes('BULLISH')) return { label, color: 'text-emerald-400', bg: 'bg-emerald-500/10', icon: '🚀' };
+       if (label.includes('TIÊU CỰC') || label.includes('BEARISH')) return { label, color: 'text-rose-400', bg: 'bg-rose-500/10', icon: '📉' };
+    }
+
+    return { label: UI_LABELS.TREND.NEUTRAL, color: 'text-yellow-400', bg: 'bg-yellow-500/10', icon: '⚖️' };
   };
 
   const sentiment = getSentiment();
@@ -33,7 +33,7 @@ const MarketSnapshot: React.FC<MarketSnapshotProps> = ({ report, marketData }) =
         <div>
           <div className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Tâm lý Thị trường</div>
           <div className={`text-2xl font-black ${sentiment.color} tracking-tighter`}>{sentiment.label}</div>
-          <div className="text-xs text-slate-400 font-medium">Dựa trên hội tụ kỹ thuật đa khung</div>
+          <div className="text-xs text-slate-400 font-medium">Hội tụ kỹ thuật đa khung</div>
         </div>
       </div>
 
@@ -48,7 +48,7 @@ const MarketSnapshot: React.FC<MarketSnapshotProps> = ({ report, marketData }) =
             </li>
             <li className="flex items-center gap-2 text-xs md:text-sm text-slate-200">
               <span className="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
-              Vàng đang cách hỗ trợ mạnh nhất: <span className="text-emerald-400 font-bold">${(marketData.xauPrice - technicalSignals.support).toFixed(1)}</span>
+              Khoảng cách hỗ trợ AI: <span className="text-emerald-400 font-bold">${(marketData.xauPrice - technicalSignals.support).toFixed(1)}</span>
             </li>
           </ul>
         </div>
@@ -56,7 +56,7 @@ const MarketSnapshot: React.FC<MarketSnapshotProps> = ({ report, marketData }) =
         <div className="flex gap-4">
           <div className="text-right">
             <div className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Biến động (ATR)</div>
-            <div className="text-lg font-black text-white">MEDIUM</div>
+            <div className="text-lg font-black text-white">TRUNG BÌNH</div>
           </div>
           <div className="w-px h-10 bg-slate-700"></div>
           <div className="text-right">

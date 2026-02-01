@@ -50,8 +50,8 @@ const DetailedAnalysis: React.FC<DetailedAnalysisProps> = ({ report }) => {
         </div>
         
         {/* Decorative corner */}
-        <div className="absolute bottom-6 right-8 text-slate-700 font-mono text-xs tracking-widest select-none font-black opacity-50 uppercase">
-           GEN-AI TERMINAL PROTOCOL // DATA SOURCE: OANDA & GOOGLE FINANCE
+        <div className="absolute bottom-6 right-8 text-slate-700 font-mono text-[10px] tracking-widest select-none font-black opacity-50 uppercase">
+           GIA TERMINAL PROTOCOL // NGUỒN DỮ LIỆU: OANDA & GOOGLE FINANCE
         </div>
       </div>
     </div>
