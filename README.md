@@ -1,325 +1,101 @@
 <div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
+<img width="1200" height="475" alt="Gold Market Analyst Banner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
 
 # 📊 Gold Market Analyst
 
-**Bảng điều khiển phân tích thị trường vàng thời gian thực được hỗ trợ bởi AI**
+**AI-Powered Real-Time Gold Market Analysis Dashboard**  
+*Bảng điều khiển phân tích thị trường vàng thời gian thực được hỗ trợ bởi AI*
 
 [![React](https://img.shields.io/badge/React-19.2.4-61DAFB?logo=react)](https://react.dev/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.8.2-3178C6?logo=typescript)](https://www.typescriptlang.org/)
 [![Vite](https://img.shields.io/badge/Vite-6.2.0-646CFF?logo=vite)](https://vitejs.dev/)
 [![Gemini AI](https://img.shields.io/badge/Gemini_AI-2.0_Flash-4285F4?logo=google)](https://ai.google.dev/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-[English](#english) | [Tiếng Việt](#tiếng-việt)
+[English](#-overview) • [Tiếng Việt](#-tổng-quan)
 
 </div>
 
 ---
 
-## Tiếng Việt
+## 🎯 Overview
 
-### 🎯 Tổng Quan
-
-**Gold Market Analyst** là ứng dụng phân tích thị trường vàng thời gian thực với sự hỗ trợ của trí tuệ nhân tạo Gemini 2.0 Flash. Ứng dụng cung cấp phân tích chuyên sâu về giá vàng thế giới (XAU/USD), vàng trong nước (SJC, PNJ, DOJI, BTMC), và các chỉ số kinh tế vĩ mô (DXY).
-
-### ✨ Tính Năng Chính
-
-#### 📈 Phân Tích Thị Trường
-- **Giá vàng thời gian thực**: XAU/USD từ các nguồn dữ liệu uy tín
-- **Vàng trong nước**: Theo dõi giá vàng SJC, PNJ, DOJI, BTMC, vàng nhẫn
-- **Chỉ số vĩ mô**: Theo dõi US Dollar Index (DXY) và tỷ giá USD/VND
-- **Biểu đồ tương tác**: Tích hợp TradingView widget cho phân tích kỹ thuật
-
-#### 🤖 Phân Tích AI
-- **Gemini 2.0 Flash**: Phân tích thị trường được hỗ trợ bởi AI tiên tiến của Google
-- **Báo cáo tự động**: Tóm tắt kỹ thuật, vĩ mô, và xu hướng thị trường
-- **Khuyến nghị giao dịch**: Đề xuất hành động MUA/BÁN/QUAN SÁT dựa trên phân tích đa chiều
-- **Chat AI**: Tương tác với chatbot AI để giải đáp thắc mắc về thị trường
-
-#### 📊 Chỉ Báo Kỹ Thuật
-- **RSI** (Relative Strength Index): Đo lường động lực thị trường
-- **Stochastic**: Xác định vùng quá mua/quá bán
-- **MACD**: Phân tích xu hướng và động lượng
-- **Bollinger Bands**: Đo độ biến động thị trường
-- **ADX**: Đo sức mạnh xu hướng
-- **CCI** (Commodity Channel Index): Xác định chu kỳ thị trường
-- **Moving Averages** (MA50, MA200): Phân tích xu hướng dài hạn
-- **Pivot Points**: Xác định các mức hỗ trợ/kháng cự
-- **Fibonacci Levels**: Mức thoái lui và mở rộng Fibonacci
-
-#### 🎨 Giao Diện & Trải Nghiệm
-- **Responsive Design**: Tối ưu cho mọi thiết bị
-- **Dark Theme**: Giao diện tối hiện đại, dễ nhìn
-- **Biểu đồ trực quan**: Sử dụng Recharts cho visualization đẹp mắt
-- **Export PDF/PNG**: Xuất báo cáo phân tích dạng PDF hoặc ảnh PNG
-- **Auto-refresh**: Cập nhật dữ liệu tự động mỗi 2 phút
-- **Toast Notifications**: Thông báo trạng thái cập nhật thời gian thực
-
-#### 📰 Tin Tức & Insights
-- **Tin tức thị trường**: Cập nhật tin tức ảnh hưởng đến giá vàng
-- **Phân tích chênh lệch**: So sánh giá vàng trong nước và thế giới
-- **Snapshot thị trường**: Tổng quan nhanh về trạng thái thị trường hiện tại
-
-### 🛠️ Công Nghệ Sử Dụng
-
-#### Frontend
-- **React 19.2.4**: Thư viện UI hiện đại
-- **TypeScript 5.8.2**: Type-safe development
-- **Vite 6.2.0**: Build tool nhanh và hiệu quả
-
-#### AI & APIs
-- **Google Gemini 2.0 Flash**: AI model cho phân tích thị trường
-- **TradingView**: Widget biểu đồ chuyên nghiệp
-- **Gold Price API**: Dữ liệu giá vàng thời gian thực
-- **Exchange Rate API**: Tỷ giá hối đoái
-
-#### Visualization & Export
-- **Recharts**: Thư viện biểu đồ React
-- **html2canvas**: Chụp ảnh màn hình
-- **jsPDF**: Tạo file PDF
-
-### 🚀 Cài Đặt và Chạy
-
-#### Yêu Cầu Hệ Thống
-- **Node.js**: Version 16.x hoặc cao hơn
-- **npm**: Version 7.x hoặc cao hơn
-- **Gemini API Key**: Đăng ký tại [Google AI Studio](https://makersuite.google.com/app/apikey)
-
-#### Các Bước Cài Đặt
-
-1. **Clone repository**
-   ```bash
-   git clone https://github.com/phuongfullstack/gold-ai-analyst.git
-   cd gold-ai-analyst
-   ```
-
-2. **Cài đặt dependencies**
-   ```bash
-   npm install
-   ```
-
-3. **Cấu hình API Key**
-   
-   Có 2 cách để cấu hình Gemini API Key:
-
-   **Cách 1: Qua giao diện ứng dụng (Khuyến nghị)**
-   - Chạy ứng dụng (bước 4)
-   - Click vào icon ⚙️ Settings ở góc trên bên phải
-   - Nhập Gemini API Key
-   - Click "Save" (API key sẽ được lưu trong localStorage)
-
-   **Cách 2: Qua file .env**
-   - Tạo file `.env.local` trong thư mục gốc:
-     ```bash
-     echo "API_KEY=your_gemini_api_key_here" > .env.local
-     ```
-   - Thay `your_gemini_api_key_here` bằng API key thực của bạn
-
-4. **Chạy ứng dụng**
-   ```bash
-   npm run dev
-   ```
-
-5. **Mở trình duyệt**
-   
-   Truy cập: `http://localhost:5173`
-
-#### Build cho Production
-
-```bash
-npm run build
-npm run preview
-```
-
-### 📖 Hướng Dẫn Sử Dụng
-
-1. **Theo dõi giá**: Xem giá vàng thời gian thực trên các thẻ Price Card
-2. **Phân tích kỹ thuật**: Kiểm tra các chỉ báo kỹ thuật trong phần Advanced Technicals
-3. **Đọc báo cáo AI**: Xem phân tích chi tiết và khuyến nghị trong Analysis Panel
-4. **Chat với AI**: Mở Chat Widget để đặt câu hỏi về thị trường
-5. **Export báo cáo**: Sử dụng nút PDF hoặc PNG để xuất báo cáo
-6. **Tùy chỉnh**: Click Settings để thay đổi API key hoặc cấu hình khác
-
-### 🔄 Luồng Hoạt Động
-
-```mermaid
-graph LR
-    A[Người dùng] --> B[React App]
-    B --> C[Gemini Service]
-    C --> D[Gold Price API]
-    C --> E[Exchange Rate API]
-    C --> F[Gemini AI]
-    D --> G[Market Data]
-    E --> G
-    F --> H[AI Analysis]
-    G --> I[Dashboard]
-    H --> I
-    I --> A
-```
-
-### 📁 Cấu Trúc Dự Án
-
-```
-gold-ai-analyst/
-├── components/           # React components
-│   ├── PriceCard.tsx    # Hiển thị giá vàng
-│   ├── MarketChart.tsx  # Biểu đồ giá
-│   ├── AnalysisPanel.tsx # Báo cáo phân tích
-│   ├── AdvancedTechnicals.tsx # Chỉ báo kỹ thuật
-│   ├── LocalGoldTable.tsx # Bảng giá vàng trong nước
-│   ├── ChatWidget.tsx   # AI chatbot
-│   └── ...
-├── services/            # API services
-│   └── geminiService.ts # Gemini AI integration
-├── utils/              # Utilities
-│   ├── algorithms.ts   # Thuật toán tính toán
-│   └── constants.ts    # Hằng số
-├── contexts/           # React contexts
-│   └── ToastContext.tsx # Toast notifications
-├── types.ts           # TypeScript types
-├── App.tsx            # Main app component
-└── package.json       # Dependencies
-
-```
-
-### 🔐 Bảo Mật
-
-- API keys được lưu trong localStorage (client-side)
-- Không commit API keys vào repository
-- Sử dụng HTTPS cho các API calls
-- Validate và sanitize user inputs
-
-### 🤝 Đóng Góp
-
-Chúng tôi hoan nghênh mọi đóng góp! Vui lòng:
-
-1. Fork repository
-2. Tạo branch mới (`git checkout -b feature/AmazingFeature`)
-3. Commit changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to branch (`git push origin feature/AmazingFeature`)
-5. Mở Pull Request
-
-### 📝 License
-
-Dự án này được phát hành dưới MIT License.
-
-### 📞 Liên Hệ
-
-- **Author**: Phuong Full Stack
-- **GitHub**: [@phuongfullstack](https://github.com/phuongfullstack)
-- **AI Studio**: [View App](https://ai.studio/apps/drive/1T7UDVloOzGYdw6mVGe0SN0LyvcQ5LtdW)
-
----
-
-## English
-
-### 🎯 Overview
-
-**Gold Market Analyst** is a real-time gold market analysis application powered by Google's Gemini 2.0 Flash AI. The application provides in-depth analysis of global gold prices (XAU/USD), local Vietnamese gold prices (SJC, PNJ, DOJI, BTMC), and macroeconomic indicators (DXY).
+**Gold Market Analyst** is a sophisticated real-time gold market analysis application powered by Google's Gemini 2.0 Flash AI. It delivers comprehensive insights into global gold prices (XAU/USD), Vietnamese local gold markets (SJC, PNJ, DOJI, BTMC), and macroeconomic indicators (DXY, USD/VND).
 
 ### ✨ Key Features
 
-#### 📈 Market Analysis
-- **Real-time gold prices**: XAU/USD from trusted data sources
-- **Local gold prices**: Track SJC, PNJ, DOJI, BTMC, and ring gold prices
-- **Macro indicators**: Monitor US Dollar Index (DXY) and USD/VND exchange rate
-- **Interactive charts**: Integrated TradingView widget for technical analysis
+#### 📈 Market Intelligence
+- **Real-time Pricing**: XAU/USD spot prices with automatic 2-minute refresh intervals
+- **Local Market Coverage**: Track SJC, PNJ, DOJI, BTMC gold bars and ring gold prices
+- **Macro Indicators**: US Dollar Index (DXY) and USD/VND exchange rate monitoring
+- **Interactive Charts**: TradingView widget integration for professional technical analysis
 
 #### 🤖 AI-Powered Analysis
-- **Gemini 2.0 Flash**: Market analysis powered by Google's advanced AI
-- **Automated reports**: Technical, macro, and market trend summaries
-- **Trading recommendations**: BUY/SELL/WATCH action suggestions based on multi-dimensional analysis
-- **AI Chat**: Interact with AI chatbot for market insights
+- **Gemini 2.0 Flash Integration**: Advanced AI-driven market sentiment analysis
+- **Automated Reporting**: Technical, macro, and market trend summaries
+- **Smart Recommendations**: BUY/SELL/WATCH signals based on multi-dimensional analysis
+- **AI Chat Assistant**: Interactive chatbot for market insights and Q&A
 
 #### 📊 Technical Indicators
-- **RSI** (Relative Strength Index): Measure market momentum
-- **Stochastic**: Identify overbought/oversold zones
-- **MACD**: Trend and momentum analysis
-- **Bollinger Bands**: Market volatility measurement
-- **ADX**: Trend strength measurement
-- **CCI** (Commodity Channel Index): Identify market cycles
-- **Moving Averages** (MA50, MA200): Long-term trend analysis
-- **Pivot Points**: Support/resistance level identification
-- **Fibonacci Levels**: Fibonacci retracement and extension levels
+- **Momentum**: RSI (Relative Strength Index), Stochastic Oscillator
+- **Trend Analysis**: MACD, Moving Averages (MA50, MA200), ADX
+- **Volatility**: Bollinger Bands, ATR
+- **Support/Resistance**: Pivot Points, Fibonacci Retracement Levels
+- **Market Cycles**: CCI (Commodity Channel Index)
 
-#### 🎨 UI & Experience
-- **Responsive Design**: Optimized for all devices
-- **Dark Theme**: Modern dark interface, easy on the eyes
-- **Visual Charts**: Beautiful visualization using Recharts
-- **Export PDF/PNG**: Export analysis reports as PDF or PNG
-- **Auto-refresh**: Automatic data updates every 2 minutes
-- **Toast Notifications**: Real-time status notifications
-
-#### 📰 News & Insights
-- **Market news**: Updates on news affecting gold prices
-- **Spread analysis**: Compare local and international gold prices
-- **Market snapshot**: Quick overview of current market status
+#### 🎨 Professional UI/UX
+- **Responsive Design**: Optimized for desktop, tablet, and mobile devices
+- **Modern Dark Theme**: Easy on the eyes with high contrast visualization
+- **Export Capabilities**: Generate PDF reports and PNG snapshots
+- **Real-time Notifications**: Toast alerts for data updates and system events
+- **Auto-refresh**: Hands-free operation with configurable update intervals
 
 ### 🛠️ Technology Stack
 
-#### Frontend
-- **React 19.2.4**: Modern UI library
-- **TypeScript 5.8.2**: Type-safe development
-- **Vite 6.2.0**: Fast and efficient build tool
+| Category | Technologies |
+|----------|-------------|
+| **Frontend** | React 19.2.4, TypeScript 5.8.2, Vite 6.2.0 |
+| **AI/ML** | Google Gemini 2.0 Flash API |
+| **Data Sources** | Gold Price APIs, TradingView, Exchange Rate APIs |
+| **Visualization** | Recharts, html2canvas, jsPDF |
+| **State Management** | React Context API |
 
-#### AI & APIs
-- **Google Gemini 2.0 Flash**: AI model for market analysis
-- **TradingView**: Professional charting widget
-- **Gold Price API**: Real-time gold price data
-- **Exchange Rate API**: Currency exchange rates
+### 🚀 Quick Start
 
-#### Visualization & Export
-- **Recharts**: React charting library
-- **html2canvas**: Screen capture
-- **jsPDF**: PDF generation
+#### Prerequisites
+- Node.js 16.x or higher
+- npm 7.x or higher
+- Gemini API Key ([Get it here](https://makersuite.google.com/app/apikey))
 
-### 🚀 Installation and Setup
+#### Installation
 
-#### System Requirements
-- **Node.js**: Version 16.x or higher
-- **npm**: Version 7.x or higher
-- **Gemini API Key**: Register at [Google AI Studio](https://makersuite.google.com/app/apikey)
+```bash
+# Clone the repository
+git clone https://github.com/phuongfullstack/gold-ai-analyst.git
+cd gold-ai-analyst
 
-#### Installation Steps
+# Install dependencies
+npm install
 
-1. **Clone the repository**
-   ```bash
-   git clone https://github.com/phuongfullstack/gold-ai-analyst.git
-   cd gold-ai-analyst
-   ```
+# Start development server
+npm run dev
+```
 
-2. **Install dependencies**
-   ```bash
-   npm install
-   ```
+#### API Configuration
 
-3. **Configure API Key**
-   
-   There are 2 ways to configure the Gemini API Key:
+**Option 1: Via Application UI (Recommended)**
+1. Launch the app: `npm run dev`
+2. Click the ⚙️ Settings icon (top-right corner)
+3. Enter your Gemini API Key
+4. Click "Save" (stored securely in localStorage)
 
-   **Method 1: Via application UI (Recommended)**
-   - Run the application (step 4)
-   - Click the ⚙️ Settings icon in the top right corner
-   - Enter your Gemini API Key
-   - Click "Save" (API key will be stored in localStorage)
+**Option 2: Via Environment File**
+```bash
+# Create .env.local file
+echo "API_KEY=your_gemini_api_key_here" > .env.local
+```
 
-   **Method 2: Via .env file**
-   - Create a `.env.local` file in the root directory:
-     ```bash
-     echo "API_KEY=your_gemini_api_key_here" > .env.local
-     ```
-   - Replace `your_gemini_api_key_here` with your actual API key
-
-4. **Run the application**
-   ```bash
-   npm run dev
-   ```
-
-5. **Open browser**
-   
-   Navigate to: `http://localhost:5173`
-
-#### Build for Production
+#### Production Build
 
 ```bash
 npm run build
@@ -328,83 +104,179 @@ npm run preview
 
 ### 📖 Usage Guide
 
-1. **Monitor prices**: View real-time gold prices on Price Cards
-2. **Technical analysis**: Check technical indicators in Advanced Technicals section
-3. **Read AI reports**: View detailed analysis and recommendations in Analysis Panel
-4. **Chat with AI**: Open Chat Widget to ask questions about the market
-5. **Export reports**: Use PDF or PNG buttons to export reports
-6. **Customize**: Click Settings to change API key or other configurations
-
-### 🔄 Workflow
-
-```mermaid
-graph LR
-    A[User] --> B[React App]
-    B --> C[Gemini Service]
-    C --> D[Gold Price API]
-    C --> E[Exchange Rate API]
-    C --> F[Gemini AI]
-    D --> G[Market Data]
-    E --> G
-    F --> H[AI Analysis]
-    G --> I[Dashboard]
-    H --> I
-    I --> A
-```
+1. **Monitor Prices**: View real-time gold prices across multiple markets
+2. **Analyze Trends**: Check technical indicators and chart patterns
+3. **Read AI Insights**: Review detailed analysis reports and recommendations
+4. **Chat with AI**: Ask questions about market conditions and strategies
+5. **Export Reports**: Generate professional PDF or PNG reports
+6. **Customize Settings**: Configure API keys and preferences
 
 ### 📁 Project Structure
 
 ```
 gold-ai-analyst/
-├── components/           # React components
-│   ├── PriceCard.tsx    # Gold price display
-│   ├── MarketChart.tsx  # Price charts
-│   ├── AnalysisPanel.tsx # Analysis reports
-│   ├── AdvancedTechnicals.tsx # Technical indicators
-│   ├── LocalGoldTable.tsx # Local gold price table
-│   ├── ChatWidget.tsx   # AI chatbot
+├── components/              # React UI components
+│   ├── PriceCard.tsx       # Price display cards
+│   ├── MarketChart.tsx     # TradingView chart integration
+│   ├── AnalysisPanel.tsx   # AI analysis dashboard
+│   ├── AdvancedTechnicals.tsx  # Technical indicators
+│   ├── ChatWidget.tsx      # AI chat interface
 │   └── ...
-├── services/            # API services
-│   └── geminiService.ts # Gemini AI integration
-├── utils/              # Utilities
-│   ├── algorithms.ts   # Calculation algorithms
-│   └── constants.ts    # Constants
-├── contexts/           # React contexts
-│   └── ToastContext.tsx # Toast notifications
-├── types.ts           # TypeScript types
-├── App.tsx            # Main app component
-└── package.json       # Dependencies
+├── services/               # API integration layer
+│   └── geminiService.ts    # Gemini AI service
+├── utils/                  # Utility functions
+│   ├── algorithms.ts       # Technical calculation algorithms
+│   └── constants.ts        # Application constants
+├── contexts/               # React Context providers
+│   └── ToastContext.tsx    # Notification system
+├── types.ts               # TypeScript type definitions
+└── App.tsx                # Main application component
 ```
 
-### 🔐 Security
+### 🔐 Security Best Practices
 
-- API keys stored in localStorage (client-side)
-- Never commit API keys to repository
-- Use HTTPS for API calls
-- Validate and sanitize user inputs
+- API keys stored in localStorage (client-side only)
+- No API keys committed to version control
+- HTTPS enforced for all API communications
+- Input validation and sanitization implemented
+- Environment variables for sensitive configuration
 
 ### 🤝 Contributing
 
-We welcome all contributions! Please:
+Contributions are welcome! Please follow these steps:
 
 1. Fork the repository
-2. Create a new branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
+2. Create a feature branch: `git checkout -b feature/amazing-feature`
+3. Commit your changes: `git commit -m 'Add amazing feature'`
+4. Push to the branch: `git push origin feature/amazing-feature`
 5. Open a Pull Request
 
-### 📝 License
+### 📄 License
 
-This project is released under the MIT License.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ### 📞 Contact
 
 - **Author**: Phuong Full Stack
 - **GitHub**: [@phuongfullstack](https://github.com/phuongfullstack)
-- **AI Studio**: [View App](https://ai.studio/apps/drive/1T7UDVloOzGYdw6mVGe0SN0LyvcQ5LtdW)
+
+---
+
+## 🇻🇳 Tổng Quan
+
+**Gold Market Analyst** là ứng dụng phân tích thị trường vàng thời gian thực chuyên nghiệp, được hỗ trợ bởi trí tuệ nhân tạo Gemini 2.0 Flash của Google. Ứng dụng cung cấp phân tích chuyên sâu về giá vàng thế giới (XAU/USD), thị trường vàng Việt Nam (SJC, PNJ, DOJI, BTMC), và các chỉ số kinh tế vĩ mô (DXY, USD/VND).
+
+### ✨ Tính Năng Nổi Bật
+
+#### 📈 Theo Dõi Thị Trường
+- **Giá Thời Gian Thực**: XAU/USD với tự động cập nhật mỗi 2 phút
+- **Thị Trường Trong Nước**: Giá vàng SJC, PNJ, DOJI, BTMC, vàng nhẫn 9999
+- **Chỉ Số Vĩ Mô**: US Dollar Index (DXY), tỷ giá USD/VND
+- **Biểu Đồ Chuyên Nghiệp**: Tích hợp TradingView widget
+
+#### 🤖 Phân Tích AI
+- **Gemini 2.0 Flash**: Phân tích tâm lý thị trường bằng AI tiên tiến
+- **Báo Cáo Tự Động**: Tóm tắt kỹ thuật, vĩ mô và xu hướng
+- **Khuyến Nghị Thông Minh**: Tín hiệu MUA/BÁN/QUAN SÁT dựa trên phân tích đa chiều
+- **Trợ Lý AI**: Chatbot giải đáp thắc mắc về thị trường
+
+#### 📊 Chỉ Báo Kỹ Thuật
+- **Động Lực**: RSI, Stochastic Oscillator
+- **Xu Hướng**: MACD, MA50, MA200, ADX
+- **Biến Động**: Bollinger Bands, ATR
+- **Hỗ Trợ/Kháng Cự**: Pivot Points, Fibonacci
+- **Chu Kỳ**: CCI (Commodity Channel Index)
+
+#### 🎨 Giao Diện & Trải Nghiệm
+- **Responsive**: Tối ưu cho mọi thiết bị
+- **Dark Theme**: Giao diện tối hiện đại, chuyên nghiệp
+- **Xuất Báo Cáo**: PDF và PNG
+- **Thông Báo**: Toast notifications thời gian thực
+- **Tự Động**: Cập nhật dữ liệu liên tục
+
+### 🚀 Hướng Dẫn Cài Đặt
+
+#### Yêu Cầu
+- Node.js phiên bản 16.x trở lên
+- npm phiên bản 7.x trở lên
+- Gemini API Key ([Đăng ký tại đây](https://makersuite.google.com/app/apikey))
+
+#### Các Bước
+
+```bash
+# Clone repository
+git clone https://github.com/phuongfullstack/gold-ai-analyst.git
+cd gold-ai-analyst
+
+# Cài đặt dependencies
+npm install
+
+# Chạy ứng dụng
+npm run dev
+```
+
+#### Cấu Hình API Key
+
+**Cách 1: Qua Giao Diện (Khuyến nghị)**
+1. Mở ứng dụng: `npm run dev`
+2. Click icon ⚙️ Settings ở góc trên bên phải
+3. Nhập Gemini API Key của bạn
+4. Click "Save" (lưu an toàn trong localStorage)
+
+**Cách 2: Qua File Môi Trường**
+```bash
+# Tạo file .env.local
+echo "API_KEY=gemini_api_key_cua_ban" > .env.local
+```
+
+#### Build Production
+
+```bash
+npm run build
+npm run preview
+```
+
+### 📖 Hướng Dẫn Sử Dụng
+
+1. **Theo Dõi Giá**: Xem giá vàng thời gian thực trên các thẻ
+2. **Phân Tích Kỹ Thuật**: Kiểm tra các chỉ báo và biểu đồ
+3. **Đọc Báo Cáo AI**: Xem phân tích chi tiết và khuyến nghị
+4. **Chat với AI**: Đặt câu hỏi về thị trường và chiến lược
+5. **Xuất Báo Cáo**: Tạo file PDF hoặc PNG chuyên nghiệp
+6. **Tùy Chỉnh**: Cấu hình API key và preferences
+
+### 🔐 Bảo Mật
+
+- API keys được lưu trong localStorage (phía client)
+- Không commit API keys vào repository
+- Sử dụng HTTPS cho tất cả API calls
+- Validate và sanitize user inputs
+- Biến môi trường cho cấu hình nhạy cảm
+
+### 🤝 Đóng Góp
+
+Chúng tôi hoan nghênh mọi đóng góp! Các bước:
+
+1. Fork repository
+2. Tạo branch: `git checkout -b feature/tinh-nang-moi`
+3. Commit: `git commit -m 'Thêm tính năng mới'`
+4. Push: `git push origin feature/tinh-nang-moi`
+5. Mở Pull Request
+
+### 📄 Giấy Phép
+
+Dự án sử dụng giấy phép MIT - xem file [LICENSE](LICENSE) để biết thêm chi tiết.
+
+### 📞 Liên Hệ
+
+- **Tác Giả**: Phuong Full Stack
+- **GitHub**: [@phuongfullstack](https://github.com/phuongfullstack)
 
 ---
 
 <div align="center">
-Made with ❤️ by Phuong Full Stack | Powered by Google Gemini AI
+
+**Made with ❤️ by Phuong Full Stack**  
+*Powered by Google Gemini AI*
+
 </div>
