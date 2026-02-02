@@ -1,4 +1,4 @@
-import { MarketData, AnalysisReport, ChatMessage } from "../../types";
+import { MarketData, AnalysisReport } from "../../types";
 
 export interface AIAnalysisResult {
   marketData: MarketData;
