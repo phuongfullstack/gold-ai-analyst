@@ -1,5 +1,6 @@
-import { MarketData } from '../types';
+import { MarketData, ChartDataPoint } from '../types';
 import { ANALYSIS_CONSTANTS } from '../utils/constants';
+import { withCache } from '../utils/cache';
 
 const WORLD_GOLD_API = 'https://api.gold-api.com/price/XAU';
 const WORLD_SILVER_API = 'https://api.gold-api.com/price/XAG';
@@ -26,7 +27,7 @@ const fetchWithTimeout = async (url: string, options: RequestInit = {}, timeoutM
   }
 };
 
-export const fetchWorldAndRates = async (): Promise<Partial<MarketData>> => {
+const _fetchWorldAndRates = async (): Promise<Partial<MarketData>> => {
   try {
     // World API is usually fast, but we protect it too
     const [goldRes, silverRes, rateRes] = await Promise.allSettled([
@@ -59,7 +60,13 @@ export const fetchWorldAndRates = async (): Promise<Partial<MarketData>> => {
   }
 };
 
-export const fetchVnAppMobData = async (token: string): Promise<Partial<MarketData>> => {
+export const fetchWorldAndRates = () => withCache(
+  'world_rates',
+  _fetchWorldAndRates,
+  ANALYSIS_CONSTANTS.CACHE_TTL_SECONDS
+);
+
+const _fetchVnAppMobData = async (token: string): Promise<Partial<MarketData>> => {
   try {
     const vnAppRes = await fetchWithTimeout(`https://vapi.vnappmob.com/api/v2/gold/sjc`, {
       headers: {
@@ -82,6 +89,12 @@ export const fetchVnAppMobData = async (token: string): Promise<Partial<MarketDa
   return {};
 };
 
+export const fetchVnAppMobData = (token: string) => withCache(
+  `vnappmob_${token}`,
+  () => _fetchVnAppMobData(token),
+  ANALYSIS_CONSTANTS.CACHE_TTL_SECONDS
+);
+
 const normalizePrice = (val: number) => {
   if (val > 1000000) return val / 1000000;
   if (val > 10000) return val / 1000;
@@ -89,7 +102,7 @@ const normalizePrice = (val: number) => {
   return val;
 };
 
-export const fetchSjcXmlData = async (): Promise<Partial<MarketData>> => {
+const _fetchSjcXmlData = async (): Promise<Partial<MarketData>> => {
   try {
     // SJC via Proxy is notoriously slow/unreliable, use short timeout
     const sjcRes = await fetchWithTimeout(proxyUrl(SJC_XML), {}, 4000);
@@ -119,7 +132,13 @@ export const fetchSjcXmlData = async (): Promise<Partial<MarketData>> => {
   return {};
 };
 
-export const fetchDojiData = async (): Promise<Partial<MarketData>> => {
+export const fetchSjcXmlData = () => withCache(
+  'sjc_xml',
+  _fetchSjcXmlData,
+  ANALYSIS_CONSTANTS.CACHE_TTL_SECONDS
+);
+
+const _fetchDojiData = async (): Promise<Partial<MarketData>> => {
   try {
     const dojiRes = await fetchWithTimeout(proxyUrl(DOJI_API), {}, 4000);
     if (dojiRes.ok) {
@@ -160,7 +179,13 @@ export const fetchDojiData = async (): Promise<Partial<MarketData>> => {
   return {};
 };
 
-export const fetchScrapedData = async (): Promise<Partial<MarketData>> => {
+export const fetchDojiData = () => withCache(
+  'doji_data',
+  _fetchDojiData,
+  ANALYSIS_CONSTANTS.CACHE_TTL_SECONDS
+);
+
+const _fetchScrapedData = async (): Promise<Partial<MarketData>> => {
   try {
     // Scrape is the most reliable backup for local prices
     const scrapeRes = await fetchWithTimeout(proxyUrl(SCRAPE_URL), {}, 6000);
@@ -212,9 +237,13 @@ export const fetchScrapedData = async (): Promise<Partial<MarketData>> => {
   return {};
 };
 
-import { ChartDataPoint } from '../types';
+export const fetchScrapedData = () => withCache(
+  'scraped_data',
+  _fetchScrapedData,
+  ANALYSIS_CONSTANTS.CACHE_TTL_SECONDS
+);
 
-export const fetchGoldChartData = async (): Promise<ChartDataPoint[]> => {
+const _fetchGoldChartData = async (): Promise<ChartDataPoint[]> => {
   try {
     const res = await fetchWithTimeout(BINANCE_API, {}, 5000);
     if (!res.ok) return [];
@@ -237,6 +266,13 @@ export const fetchGoldChartData = async (): Promise<ChartDataPoint[]> => {
     return [];
   }
 };
+
+export const fetchGoldChartData = () => withCache(
+  'gold_chart_data',
+  _fetchGoldChartData,
+  ANALYSIS_CONSTANTS.CACHE_TTL_SECONDS,
+  (data) => data && data.length > 0 // Only cache if we got data
+);
 
 export const fetchAllMarketData = async (): Promise<MarketData> => {
   const vnAppMobToken = localStorage.getItem("VNAPPMOB_API_KEY");
