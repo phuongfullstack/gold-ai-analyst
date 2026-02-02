@@ -149,10 +149,24 @@ export class OpenRouterProvider implements AIProvider {
     let result;
     try {
         result = JSON.parse(content);
-    } catch (e) {
-        // Try to clean markdown code blocks if present
+    } catch (firstError) {
+        // Try to clean markdown code blocks if present and parse again
         const cleaned = content.replace(/```json/g, '').replace(/```/g, '').trim();
-        result = JSON.parse(cleaned);
+        try {
+            result = JSON.parse(cleaned);
+        } catch (secondError) {
+            const truncate = (value: string, maxLength: number) =>
+                value.length > maxLength ? value.slice(0, maxLength) + "..." : value;
+            const truncatedRaw = truncate(content, 500);
+            const truncatedCleaned = truncate(cleaned, 500);
+            throw new Error(
+                `Failed to parse AI response as JSON. ` +
+                `First parse error: ${(firstError as Error).message}. ` +
+                `Second parse error after cleaning markdown: ${(secondError as Error).message}. ` +
+                `Raw content (truncated): ${truncatedRaw}. ` +
+                `Cleaned content (truncated): ${truncatedCleaned}`
+            );
+        }
     }
 
     // Inject the real chart data we fetched so the UI can render it
