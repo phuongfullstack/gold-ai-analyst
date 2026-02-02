@@ -1,4 +1,4 @@
-import { MarketData, AnalysisReport, ChartDataPoint, TechnicalSignals } from "../../types";
+import { MarketData, AnalysisReport } from "../../types";
 import { ANALYSIS_CONSTANTS, UI_LABELS } from "../../utils/constants";
 import {
   calculatePivotPointsExtended,
