@@ -1,7 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { chatWithAnalyst } from '../services/geminiService';
+import { chatWithAnalyst } from '../services/ai';
 import { ChatMessage } from '../types';
-import { GenerateContentResponse } from '@google/genai';
 
 const ChatWidget: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -41,7 +40,7 @@ const ChatWidget: React.FC = () => {
         parts: [{ text: m.text }]
       }));
 
-      const streamResult = await chatWithAnalyst(history, userMsg.text);
+      const result = await chatWithAnalyst(history, userMsg.text);
       
       let fullResponse = '';
       const responseId = (Date.now() + 1).toString();
@@ -54,10 +53,21 @@ const ChatWidget: React.FC = () => {
         timestamp: new Date()
       }]);
 
-      for await (const chunk of streamResult) {
-         const c = chunk as GenerateContentResponse;
-         if (c.text) {
-             fullResponse += c.text;
+      // Handle stream (Gemini/OpenRouter standard)
+      const stream = result.stream || result; // Fallback if result itself is iterable
+
+      for await (const chunk of stream) {
+         // Google GenAI chunks usually have .text() method
+         // Our OpenRouter wrapper also returns object with .text() method or property
+         let chunkText = '';
+         if (typeof (chunk as any).text === 'function') {
+            chunkText = (chunk as any).text();
+         } else if ((chunk as any).text) {
+            chunkText = (chunk as any).text;
+         }
+
+         if (chunkText) {
+             fullResponse += chunkText;
              setMessages(prev => prev.map(m => 
                  m.id === responseId ? { ...m, text: fullResponse } : m
              ));

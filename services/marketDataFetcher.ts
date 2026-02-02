@@ -7,6 +7,7 @@ const EXCHANGE_RATE_API = 'https://open.er-api.com/v6/latest/USD';
 const SJC_XML = 'https://sjc.com.vn/xml/tygiavang.xml';
 const DOJI_API = 'https://giavang.doji.vn/api/giavang';
 const SCRAPE_URL = 'https://www.24h.com.vn/gia-vang-hom-nay-c425.html';
+const BINANCE_API = 'https://api.binance.com/api/v3/klines?symbol=PAXGUSDT&interval=1h&limit=50';
 
 // CORS Proxy for browser-side scraping/XML fetching
 const proxyUrl = (url: string) => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`;
@@ -211,22 +212,64 @@ export const fetchScrapedData = async (): Promise<Partial<MarketData>> => {
   return {};
 };
 
+import { ChartDataPoint } from '../types';
+
+export const fetchGoldChartData = async (): Promise<ChartDataPoint[]> => {
+  try {
+    const res = await fetchWithTimeout(BINANCE_API, {}, 5000);
+    if (!res.ok) return [];
+
+    const rawData = await res.json();
+    // Binance format: [open_time, open, high, low, close, volume, ...]
+    // PAXG/USDT is a good proxy for XAU/USD
+
+    return rawData.map((d: any) => ({
+      time: Math.floor(d[0] / 1000).toString(),
+      xau: parseFloat(d[4]), // Close price
+      dxy: 104.5, // Placeholder as we don't have hourly DXY
+      open: parseFloat(d[1]),
+      high: parseFloat(d[2]),
+      low: parseFloat(d[3]),
+      close: parseFloat(d[4])
+    }));
+  } catch (e) {
+    console.warn("Fetch Chart Data failed", e);
+    return [];
+  }
+};
+
 export const fetchAllMarketData = async (): Promise<MarketData> => {
   const vnAppMobToken = localStorage.getItem("VNAPPMOB_API_KEY");
 
   // We use Promise.allSettled implicitly by catching errors in sub-functions,
   // but to be double sure, we wait for all.
   // Importantly, because of fetchWithTimeout, these won't hang forever.
-  const [world, sjcXml, doji, scrape] = await Promise.all([
+  const [world, sjcXml, doji, scrape, chartData] = await Promise.all([
     fetchWorldAndRates(),
     fetchSjcXmlData(),
     fetchDojiData(),
-    fetchScrapedData()
+    fetchScrapedData(),
+    fetchGoldChartData()
   ]);
 
   let vnApp: Partial<MarketData> = {};
   if (vnAppMobToken) {
     vnApp = await fetchVnAppMobData(vnAppMobToken);
+  }
+
+  // Extract previous day OHLC if available
+  let ohlc = undefined;
+  if (chartData && chartData.length >= 25) {
+     // Approx 24h ago: use the 25th candle from the end (1h candles, up to 50 total)
+     const prev = chartData[chartData.length - 25]; // reference point ~24 hours before last candle
+     const curr = chartData[chartData.length - 1];
+     // Simple daily candle estimation
+     ohlc = {
+        open: prev.open || 0,
+        high: Math.max(...chartData.slice(-24).map(c => c.high || 0)),
+        low: Math.min(...chartData.slice(-24).map(c => c.low || 0)),
+        close: curr.close || 0
+     };
   }
 
   const marketData: MarketData = {
@@ -248,6 +291,7 @@ export const fetchAllMarketData = async (): Promise<MarketData> => {
     usdVnd: world.usdVnd || 25450,
     spread: 0,
     lastUpdated: new Date().toLocaleTimeString('vi-VN'),
+    ohlc: ohlc
   };
 
   // Silver Calculation Fallback

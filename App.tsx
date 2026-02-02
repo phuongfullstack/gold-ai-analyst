@@ -10,7 +10,7 @@ import MarketSnapshot from './components/MarketSnapshot';
 import ChatWidget from './components/ChatWidget';
 import SettingsModal from './components/SettingsModal';
 import Footer from './components/Footer';
-import { fetchMarketAnalysis } from './services/geminiService';
+import { fetchMarketAnalysis } from './services/ai';
 import {
   fetchWorldAndRates,
   fetchDojiData,
