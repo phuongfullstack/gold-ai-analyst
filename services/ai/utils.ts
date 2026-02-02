@@ -24,6 +24,11 @@ export const enrichMarketAnalysis = (
 ): { marketData: MarketData; report: AnalysisReport } => {
   const result = { marketData: { ...marketData }, report: { ...report } };
 
+  // Sync Chart Data: Use real fetched data if available (overwrites AI data)
+  if (result.marketData.chartData && result.marketData.chartData.length > 0) {
+    result.report.chartData = result.marketData.chartData;
+  }
+
   // --- POST-PROCESSING: Calculate Spread & Validate Data ---
   // 0. Ensure we have numbers for critical fields
   const xau = Number(result.marketData.xauPrice) || 0;

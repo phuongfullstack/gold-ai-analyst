@@ -1,6 +1,5 @@
 import { AIProvider, AIAnalysisResult } from "../types";
 import { MarketData } from "../../../types";
-import { fetchGoldChartData } from "../../marketDataFetcher";
 
 const OPENROUTER_API_URL = "https://openrouter.ai/api/v1";
 
@@ -87,8 +86,8 @@ export class OpenRouterProvider implements AIProvider {
   }
 
   async generateAnalysis(realData: MarketData): Promise<AIAnalysisResult> {
-    // 1. Fetch Chart Data (History) to inject into prompt
-    const chartData = await fetchGoldChartData();
+    // 1. Use Chart Data (History) from Real Data
+    const chartData = realData.chartData || [];
     const last24h = chartData.slice(-24); // Last 24 candles (1H)
 
     // 2. Construct Context
