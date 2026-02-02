@@ -291,7 +291,8 @@ export const fetchAllMarketData = async (): Promise<MarketData> => {
     usdVnd: world.usdVnd || 25450,
     spread: 0,
     lastUpdated: new Date().toLocaleTimeString('vi-VN'),
-    ohlc: ohlc
+    ohlc: ohlc,
+    chartData: chartData || []
   };
 
   // Silver Calculation Fallback

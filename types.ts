@@ -107,6 +107,7 @@ export interface MarketData {
   spread: number;
   lastUpdated: string;
   ohlc?: OHLC; // Optional as it might fail to fetch
+  chartData?: ChartDataPoint[];
 }
 
 export interface TechnicalSignals {

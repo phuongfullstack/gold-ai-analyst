@@ -56,6 +56,8 @@ export class GeminiProvider implements AIProvider {
       - PNJ: ${realData.pnjBuy} - ${realData.pnjSell} (triệu/lượng)
       - Bảo Tín Minh Châu: ${realData.btmcBuy} - ${realData.btmcSell} (triệu/lượng)
       - Bạc Trong nước: ${realData.silverBuy} - ${realData.silverSell} (triệu/lượng)
+      - DỮ LIỆU LỊCH SỬ 1H (24 NẾN GẦN NHẤT):
+      ${(realData.chartData || []).slice(-24).map(c => `[${c.time}]: O=${c.open} H=${c.high} L=${c.low} C=${c.close}`).join('\n')}
 
       HÃY SỬ DỤNG CÔNG CỤ TÌM KIẾM (GOOGLE SEARCH) ĐỂ BỔ SUNG VÀ KIỂM CHỨNG:
 
@@ -77,7 +79,8 @@ export class GeminiProvider implements AIProvider {
       - Tìm kiếm "World news geopolitical events today" có ảnh hưởng đến tâm lý nhà đầu tư.
 
       BƯỚC 4: LẤY DỮ LIỆU LỊCH SỬ (CHART)
-      - Tìm kiếm "XAUUSD price history last 50 hours hourly OHLC" để lấy chuỗi giá vàng trong 50 giờ qua.
+      - ƯU TIÊN SỬ DỤNG DỮ LIỆU LỊCH SỬ ĐÃ CUNG CẤP Ở TRÊN (trong phần DỮ LIỆU THỰC TẾ).
+      - Nếu không có dữ liệu cung cấp, hãy tìm kiếm "XAUUSD price history last 50 hours hourly OHLC".
       - Cố gắng lấy ít nhất 30-50 điểm dữ liệu để phục vụ tính toán chỉ báo.
       - Mỗi điểm dữ liệu CẦN có: Open, High, Low, Close (OHLC).
 
@@ -222,6 +225,12 @@ export class GeminiProvider implements AIProvider {
     }
 
     const result = JSON.parse(jsonText);
+
+    // Inject Chart Data if available
+    if (realData.chartData && realData.chartData.length > 0) {
+        if (!result.report) result.report = {} as any;
+        result.report.chartData = realData.chartData;
+    }
 
     // Patch Missing Data from Real Data (Ground Truth)
     // If AI failed to find something, use what we already have
