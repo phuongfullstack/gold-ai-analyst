@@ -174,10 +174,17 @@ export class OpenRouterProvider implements AIProvider {
 
   async chat(history: { role: string; parts: { text: string }[] }[], message: string) {
     // Convert Gemini history format to OpenAI format
-    const messages = history.map(h => ({
-      role: h.role === 'model' ? 'assistant' : 'user',
-      content: h.parts[0].text
-    }));
+    const messages = history
+      .filter(
+        (h) =>
+          Array.isArray(h.parts) &&
+          h.parts.length > 0 &&
+          typeof h.parts[0]?.text === "string"
+      )
+      .map((h) => ({
+        role: h.role === "model" ? "assistant" : "user",
+        content: h.parts[0].text,
+      }));
     messages.push({ role: 'user', content: message });
 
     const response = await fetch(`${OPENROUTER_API_URL}/chat/completions`, {
