@@ -1,6 +1,6 @@
 import { GoogleGenAI, Type } from "@google/genai";
 import { AIProvider, AIAnalysisResult } from "../types";
-import { MarketData, AnalysisReport } from "../../../types";
+import { MarketData } from "../../../types";
 
 const MODEL_NAME = "gemini-2.0-flash";
 
