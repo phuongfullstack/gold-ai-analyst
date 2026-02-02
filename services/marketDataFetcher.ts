@@ -259,9 +259,9 @@ export const fetchAllMarketData = async (): Promise<MarketData> => {
 
   // Extract previous day OHLC if available
   let ohlc = undefined;
-  if (chartData && chartData.length > 24) {
-     // Approx 24h ago
-     const prev = chartData[chartData.length - 25]; // 24 hours ago
+  if (chartData && chartData.length >= 25) {
+     // Approx 24h ago: use the 25th candle from the end (1h candles, up to 50 total)
+     const prev = chartData[chartData.length - 25]; // reference point ~24 hours before last candle
      const curr = chartData[chartData.length - 1];
      // Simple daily candle estimation
      ohlc = {
