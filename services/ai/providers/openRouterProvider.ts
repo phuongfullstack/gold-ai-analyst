@@ -75,6 +75,10 @@ export class OpenRouterProvider implements AIProvider {
       const data = await response.json();
       // Filter for decent chat models, sort by pricing or popularity if possible
       // For now, just return ids
+      if (!data || !Array.isArray(data.data)) {
+        console.warn("Unexpected OpenRouter models response format", data);
+        return ["openai/gpt-4o", "anthropic/claude-3.5-sonnet", "meta-llama/llama-3.1-70b-instruct"];
+      }
       return data.data.map((m: any) => m.id);
     } catch (e) {
       console.warn("Failed to fetch OpenRouter models", e);
