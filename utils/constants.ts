@@ -70,6 +70,7 @@ export const ANALYSIS_CONSTANTS = {
 
   // UI/App specific constants
   REFRESH_INTERVAL_MS: 30 * 60 * 1000, // 30 minutes
+  CACHE_TTL_SECONDS: 180, // 3 minutes cache for market data
   EXPORT_WINDOW_WIDTH: 1600,
   APP_VERSION: 'v1.6.0',
 };
