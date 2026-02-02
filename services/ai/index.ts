@@ -1,4 +1,4 @@
-import { MarketData, AnalysisReport, ChatMessage } from "../../types";
+import { MarketData, AnalysisReport } from "../../types";
 import { fetchAllMarketData } from "../marketDataFetcher";
 import { enrichMarketAnalysis } from "./utils";
 import { fetchFallbackData } from "./fallback";
