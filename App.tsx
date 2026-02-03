@@ -283,7 +283,15 @@ const App: React.FC = () => {
 
         {/* Vietnamese Gold Prices Comparison */}
         <div className="mb-10">
-           <LocalGoldTable data={marketData} isLoading={loading} />
+           {marketData ? (
+             <LocalGoldTable data={marketData} isLoading={loading} />
+           ) : (
+             <div className="h-40 bg-slate-900/40 rounded-2xl border border-slate-800/50 flex items-center justify-center animate-pulse backdrop-blur-sm">
+                <span className="text-slate-500 font-bold uppercase tracking-widest text-xs flex items-center gap-2">
+                   <LoadingIcon size={20} /> Đang tải dữ liệu thị trường...
+                </span>
+             </div>
+           )}
         </div>
 
         {/* Main Content Grid */}
