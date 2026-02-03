@@ -62,25 +62,25 @@ const MarketChart: React.FC<MarketChartProps> = ({ supportLevel, resistanceLevel
   }, []);
 
   return (
-    <div className="w-full h-[450px] md:h-[600px] bg-slate-900 rounded-xl border border-slate-700 overflow-hidden flex flex-col shadow-xl">
+    <div className="w-full h-[500px] md:h-[650px] bg-slate-900/40 rounded-2xl border border-slate-800/50 overflow-hidden flex flex-col shadow-2xl backdrop-blur-sm">
        {/* Header Info Layer - AI Levels Overlay */}
-       <div className="flex flex-wrap gap-4 px-4 py-3 bg-slate-800 border-b border-slate-700 justify-between items-center z-10">
-          <h3 className="text-sm font-semibold text-slate-200 flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
-            Biểu đồ TradingView (Real-time)
+       <div className="flex flex-wrap gap-4 px-5 py-4 bg-slate-900/40 border-b border-slate-800/50 justify-between items-center z-10 backdrop-blur-md">
+          <h3 className="text-sm font-bold text-slate-200 flex items-center gap-3">
+            <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.5)]"></span>
+            Real-time Technical Chart
           </h3>
           
           <div className="flex gap-4 text-xs font-mono">
              {supportLevel && (
-                <div className="flex items-center gap-2 px-3 py-1 bg-emerald-500/10 border border-emerald-500/30 rounded-lg">
-                  <span className="text-emerald-500 font-bold">Hỗ trợ:</span>
-                  <span className="text-emerald-300">${supportLevel}</span>
+                <div className="flex items-center gap-2 px-3 py-1.5 bg-emerald-500/10 border border-emerald-500/20 rounded-lg">
+                  <span className="text-emerald-500 font-bold uppercase tracking-wider">Hỗ trợ</span>
+                  <span className="text-emerald-300 font-bold">${supportLevel}</span>
                 </div>
              )}
              {resistanceLevel && (
-                <div className="flex items-center gap-2 px-3 py-1 bg-rose-500/10 border border-rose-500/30 rounded-lg">
-                  <span className="text-rose-500 font-bold">Kháng cự:</span>
-                  <span className="text-rose-300">${resistanceLevel}</span>
+                <div className="flex items-center gap-2 px-3 py-1.5 bg-rose-500/10 border border-rose-500/20 rounded-lg">
+                  <span className="text-rose-500 font-bold uppercase tracking-wider">Kháng cự</span>
+                  <span className="text-rose-300 font-bold">${resistanceLevel}</span>
                 </div>
              )}
           </div>

@@ -95,14 +95,14 @@ const ChatWidget: React.FC = () => {
     <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end">
       {/* Chat Window */}
       {isOpen && (
-        <div className="w-80 md:w-96 h-[500px] bg-slate-900 border border-slate-700 rounded-xl shadow-2xl flex flex-col overflow-hidden mb-4 animate-in slide-in-from-bottom-10 fade-in duration-300">
+        <div className="w-80 md:w-96 h-[500px] bg-slate-900/90 border border-slate-700/50 rounded-2xl shadow-2xl backdrop-blur-md flex flex-col overflow-hidden mb-4 animate-in slide-in-from-bottom-10 fade-in duration-300">
           {/* Header */}
-          <div className="bg-slate-800 p-4 border-b border-slate-700 flex justify-between items-center">
-            <h3 className="text-white font-semibold flex items-center gap-2">
-              <span className="h-2 w-2 bg-green-500 rounded-full animate-pulse"></span>
-              Chat với Chuyên gia
+          <div className="bg-slate-800/80 p-4 border-b border-slate-700/50 flex justify-between items-center backdrop-blur-sm">
+            <h3 className="text-white font-bold text-sm flex items-center gap-2">
+              <span className="h-2 w-2 bg-emerald-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.5)]"></span>
+              AI Financial Assistant
             </h3>
-            <button onClick={() => setIsOpen(false)} className="text-slate-400 hover:text-white">
+            <button onClick={() => setIsOpen(false)} className="text-slate-400 hover:text-white transition-colors">
               <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
               </svg>
@@ -110,13 +110,13 @@ const ChatWidget: React.FC = () => {
           </div>
           
           {/* Messages */}
-          <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-slate-900/95">
+          <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-transparent custom-scrollbar">
             {messages.map((msg) => (
               <div key={msg.id} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                <div className={`max-w-[80%] rounded-2xl px-4 py-2 text-sm leading-relaxed ${
+                <div className={`max-w-[85%] rounded-2xl px-4 py-3 text-sm leading-relaxed shadow-lg ${
                   msg.role === 'user' 
-                    ? 'bg-blue-600 text-white rounded-br-none' 
-                    : 'bg-slate-700 text-slate-200 rounded-bl-none'
+                    ? 'bg-blue-600 text-white rounded-br-sm'
+                    : 'bg-slate-800/80 text-slate-200 border border-slate-700/50 rounded-bl-sm'
                 }`}>
                   {msg.text}
                 </div>
@@ -124,10 +124,10 @@ const ChatWidget: React.FC = () => {
             ))}
             {isTyping && (
               <div className="flex justify-start">
-                <div className="bg-slate-700 rounded-2xl px-4 py-2 rounded-bl-none flex gap-1">
-                  <span className="w-2 h-2 bg-slate-400 rounded-full animate-bounce"></span>
-                  <span className="w-2 h-2 bg-slate-400 rounded-full animate-bounce delay-75"></span>
-                  <span className="w-2 h-2 bg-slate-400 rounded-full animate-bounce delay-150"></span>
+                <div className="bg-slate-800/80 rounded-2xl px-4 py-3 rounded-bl-sm border border-slate-700/50 flex gap-1">
+                  <span className="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce"></span>
+                  <span className="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce delay-75"></span>
+                  <span className="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce delay-150"></span>
                 </div>
               </div>
             )}
@@ -135,19 +135,19 @@ const ChatWidget: React.FC = () => {
           </div>
 
           {/* Input */}
-          <div className="p-3 bg-slate-800 border-t border-slate-700 flex gap-2">
+          <div className="p-3 bg-slate-800/80 border-t border-slate-700/50 flex gap-2 backdrop-blur-sm">
             <input
               type="text"
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={handleKeyPress}
-              placeholder="Hỏi về xu hướng..."
-              className="flex-1 bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-blue-500"
+              placeholder="Ask about XAU trend..."
+              className="flex-1 bg-slate-900/50 border border-slate-700/50 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-blue-500/50 transition-colors placeholder:text-slate-500"
             />
             <button 
               onClick={handleSend}
               disabled={!input.trim() || isTyping}
-              className="bg-blue-600 hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-lg p-2 transition-colors"
+              className="bg-blue-600 hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-xl p-2.5 transition-all shadow-lg shadow-blue-600/20 active:scale-95"
             >
               <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
@@ -160,7 +160,7 @@ const ChatWidget: React.FC = () => {
       {/* Toggle Button */}
       <button 
         onClick={() => setIsOpen(!isOpen)}
-        className="h-14 w-14 rounded-full bg-blue-600 hover:bg-blue-500 shadow-lg shadow-blue-500/30 flex items-center justify-center text-white transition-transform hover:scale-105"
+        className="h-14 w-14 rounded-full bg-gradient-to-br from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 shadow-[0_0_20px_rgba(37,99,235,0.4)] flex items-center justify-center text-white transition-all hover:scale-105 active:scale-95 border border-white/10"
       >
         {isOpen ? (
            <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">

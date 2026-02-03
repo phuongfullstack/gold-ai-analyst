@@ -88,3 +88,23 @@ export const chatWithAnalyst = async (history: { role: string; parts: { text: st
   }
   return provider.chat(history, message);
 };
+
+export const generateMarketAnalysis = async (marketData: MarketData): Promise<AnalysisReport> => {
+  const provider = getProvider();
+
+  if (!provider) {
+    const fallback = await fetchFallbackData();
+    return fallback.report;
+  }
+
+  try {
+    const result = await provider.generateAnalysis(marketData);
+    // Note: enrichMarketAnalysis returns { marketData, report }
+    const enriched = await enrichMarketAnalysis(result.marketData, result.report);
+    return enriched.report;
+  } catch (error) {
+     console.error("AI Analysis failed", error);
+     const fallback = await fetchFallbackData();
+     return fallback.report;
+  }
+};
